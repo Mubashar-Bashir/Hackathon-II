@@ -1,0 +1,221 @@
+{
+  "TodoService": [
+    "src.core.todo_service",
+    "core.todo_service"
+  ],
+  "InMemoryTaskRepository": [
+    "src.storage.in_memory_storage",
+    "storage.in_memory_storage"
+  ],
+  "test_user_story_1": [
+    "validate_user_stories"
+  ],
+  "test_user_story_2": [
+    "validate_user_stories"
+  ],
+  "test_user_story_3": [
+    "validate_user_stories"
+  ],
+  "test_user_story_4": [
+    "validate_user_stories"
+  ],
+  "test_user_story_5": [
+    "validate_user_stories"
+  ],
+  "main": [
+    "validate_user_stories",
+    "test_functionality",
+    "src.main",
+    "src.ui.interactive_cli"
+  ],
+  "pytest": [
+    "pytest"
+  ],
+  "datetime": [
+    "datetime"
+  ],
+  "Task": [
+    "src.models.todo",
+    "models.todo"
+  ],
+  "TaskStatus": [
+    "src.models.todo",
+    "models.todo"
+  ],
+  "test_task_creation": [
+    "tests.test_models"
+  ],
+  "test_task_title_validation": [
+    "tests.test_models"
+  ],
+  "test_task_description_validation": [
+    "tests.test_models"
+  ],
+  "test_task_status_values": [
+    "tests.test_models"
+  ],
+  "test_create_task": [
+    "tests.test_todo_service"
+  ],
+  "test_get_task": [
+    "tests.test_todo_service"
+  ],
+  "test_list_tasks": [
+    "tests.test_todo_service"
+  ],
+  "test_update_task": [
+    "tests.test_todo_service"
+  ],
+  "test_delete_task": [
+    "tests.test_todo_service"
+  ],
+  "test_toggle_task_status": [
+    "tests.test_todo_service"
+  ],
+  "CliRunner": [
+    "typer.testing"
+  ],
+  "app": [
+    "src.ui.cli"
+  ],
+  "test_add_command": [
+    "tests.test_cli"
+  ],
+  "test_list_command": [
+    "tests.test_cli"
+  ],
+  "test_list_command_empty": [
+    "tests.test_cli"
+  ],
+  "test_complete_command": [
+    "tests.test_cli"
+  ],
+  "test_update_command": [
+    "tests.test_cli"
+  ],
+  "test_delete_command": [
+    "tests.test_cli"
+  ],
+  "cli_module": [
+    "src.ui.cli"
+  ],
+  "sys": [
+    "sys"
+  ],
+  "cli_app": [
+    "ui.cli"
+  ],
+  "interactive_main": [
+    "ui.interactive_cli"
+  ],
+  "ABC": [
+    "abc"
+  ],
+  "abstractmethod": [
+    "abc"
+  ],
+  "List": [
+    "typing"
+  ],
+  "Optional": [
+    "typing"
+  ],
+  "TaskRepository": [
+    "src.storage.__init__",
+    "src",
+    "storage"
+  ],
+  "create_task": [
+    "src.storage.__init__",
+    "src.storage.in_memory_storage"
+  ],
+  "get_task": [
+    "src.storage.__init__",
+    "src.storage.in_memory_storage",
+    "src.core.todo_service"
+  ],
+  "update_task": [
+    "src.storage.__init__",
+    "src.storage.in_memory_storage",
+    "src.core.todo_service"
+  ],
+  "delete_task": [
+    "src.storage.__init__",
+    "src.storage.in_memory_storage",
+    "src.core.todo_service"
+  ],
+  "list_tasks": [
+    "src.storage.__init__",
+    "src.storage.in_memory_storage",
+    "src.core.todo_service",
+    "src.ui.cli"
+  ],
+  "logging": [
+    "logging"
+  ],
+  "__init__": [
+    "src.storage.in_memory_storage",
+    "src.core.todo_service",
+    "src.ui.interactive_cli"
+  ],
+  "add_task": [
+    "src.core.todo_service"
+  ],
+  "toggle_task_status": [
+    "src.core.todo_service"
+  ],
+  "Console": [
+    "rich.console"
+  ],
+  "Table": [
+    "rich.table"
+  ],
+  "InteractiveTodoCLI": [
+    "src.ui.interactive_cli"
+  ],
+  "display_menu": [
+    "src.ui.interactive_cli"
+  ],
+  "add_todo": [
+    "src.ui.interactive_cli"
+  ],
+  "list_todos": [
+    "src.ui.interactive_cli"
+  ],
+  "update_todo": [
+    "src.ui.interactive_cli"
+  ],
+  "delete_todo": [
+    "src.ui.interactive_cli"
+  ],
+  "toggle_status": [
+    "src.ui.interactive_cli"
+  ],
+  "run": [
+    "src.ui.interactive_cli"
+  ],
+  "typer": [
+    "typer"
+  ],
+  "add": [
+    "src.ui.cli"
+  ],
+  "complete": [
+    "src.ui.cli"
+  ],
+  "update": [
+    "src.ui.cli"
+  ],
+  "delete": [
+    "src.ui.cli"
+  ],
+  "BaseModel": [
+    "pydantic"
+  ],
+  "Field": [
+    "pydantic"
+  ],
+  "Enum": [
+    "enum"
+  ]
+}
