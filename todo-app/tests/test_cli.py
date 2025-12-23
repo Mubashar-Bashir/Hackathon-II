@@ -41,7 +41,7 @@ def test_list_command():
     cli_module.service = service
 
     try:
-        result = runner.invoke(app, ["list"])
+        result = runner.invoke(app, ["list-tasks"])
         assert result.exit_code == 0
         assert "Task 1" in result.stdout
         assert "Task 2" in result.stdout
@@ -61,7 +61,7 @@ def test_list_command_empty():
     cli_module.service = TodoService(repository)
 
     try:
-        result = runner.invoke(app, ["list"])
+        result = runner.invoke(app, ["list-tasks"])
         assert result.exit_code == 0
         assert "No tasks found" in result.stdout
     finally:
