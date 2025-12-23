@@ -208,3 +208,10 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management) (001-todo-cli)
+- In-Memory Repository (Abstract Repository Pattern implementation for Phase I, swappable for SQL in Phase II) (001-todo-cli)
+
+## Recent Changes
+- 001-todo-cli: Added Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management)
