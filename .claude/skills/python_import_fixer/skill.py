@@ -1,6 +1,6 @@
 """
 Python Import Path Fixer Skill
-Automatically detects and fixes Python import path issues in FastAPI projects
+Automatically detects and fixes Python import path issues in Python projects
 """
 
 import os
@@ -200,6 +200,34 @@ class PythonImportFixer:
 
         return issues
 
+    def integrate_with_registry(self) -> Dict:
+        """Integrate with import registry for enhanced import resolution"""
+        changes = {"registry_integration": []}
+
+        # Check if import registry exists
+        registry_file = self.project_root / ".import_registry.json"
+        if not registry_file.exists():
+            changes["registry_integration"].append("No import registry found, consider running import_registry build")
+            return changes
+
+        # Load the registry
+        with open(registry_file, 'r') as f:
+            registry = json.load(f)
+
+        # Suggest potential improvements based on registry
+        suggestions = []
+        for symbol, modules in registry.items():
+            if len(modules) > 1:  # Multiple definitions found
+                suggestions.append({
+                    "type": "duplicate_symbol",
+                    "symbol": symbol,
+                    "modules": modules,
+                    "message": f"Symbol '{symbol}' found in multiple modules: {modules}"
+                })
+
+        changes["registry_integration"] = suggestions
+        return changes
+
     def fix_environment_variables(self) -> Dict:
         """Fix common environment variable issues"""
         changes = {"fixed_vars": [], "errors": []}
@@ -269,12 +297,19 @@ def run_skill(args: Optional[List[str]] = None) -> str:
         result["actions_performed"]["env_changes"] = env_changes
         print(f"   Fixed {len(env_changes['fixed_vars'])} environment variables")
 
+    # Step 6: Integrate with import registry
+    print("🔗 Integrating with import registry...")
+    registry_integration = fixer.integrate_with_registry()
+    result["actions_performed"]["registry_integration"] = registry_integration
+    print(f"   Registry integration completed")
+
     # Summary
     print("\n✅ Python Import Path Fixer completed!")
     print(f"   - Found {len(issues)} import issues")
     print(f"   - Created {len(pkg_result['created_files'])} package files")
     print(f"   - Converted {len(import_changes['converted_imports'])} imports")
     print(f"   - Fixed {len(env_changes['fixed_vars'])} environment variables")
+    print(f"   - Performed registry integration")
 
     return json.dumps(result, indent=2)
 

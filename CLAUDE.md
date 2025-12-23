@@ -212,6 +212,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management) (001-todo-cli)
 - In-Memory Repository (Abstract Repository Pattern implementation for Phase I, swappable for SQL in Phase II) (001-todo-cli)
+- Python 3.13+ + Pydantic V2, Typer, Rich, uv (001-task-organization)
 
 ## Recent Changes
 - 001-todo-cli: Added Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management)
