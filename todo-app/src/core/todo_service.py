@@ -8,9 +8,11 @@ including adding, updating, deleting, and querying tasks.
 import logging
 from typing import List, Optional
 from datetime import datetime
-from ..models.todo import Task, TaskStatus, Priority, TaskFilter, SortCriteria, SortField, SortOrder
+from ..models.todo import Task, TaskStatus, Priority, TaskFilter, SortCriteria, SortField, SortOrder, RecurrencePattern
+from .scheduler import SchedulerService
 from ..storage.in_memory_storage import InMemoryTaskRepository
 from ..storage import TaskRepository
+from .i18n import i18n_service
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -24,16 +26,18 @@ class TodoService:
     storage layer, handling all business logic related to task management.
     """
 
-    def __init__(self, repository: TaskRepository):
+    def __init__(self, repository: TaskRepository, scheduler_service: Optional[SchedulerService] = None):
         """
         Initialize the TodoService with a repository.
 
         Args:
             repository: An implementation of TaskRepository to handle data storage
+            scheduler_service: An instance of SchedulerService for handling recurring tasks and notifications
         """
         self.repository = repository
+        self.scheduler_service = scheduler_service or SchedulerService()
 
-    def add_task(self, title: str, description: str = "", priority: Optional[Priority] = Priority.MEDIUM, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None) -> Task:
+    def add_task(self, title: str, description: str = "", priority: Optional[Priority] = Priority.MEDIUM, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None, recurrence_pattern: Optional[RecurrencePattern] = None, reminder_sent: bool = False, next_occurrence_date: Optional[datetime] = None) -> Task:
         """
         Add a new task with the given title and optional organization features.
 
@@ -43,6 +47,9 @@ class TodoService:
             priority: Priority level (Low, Medium, High; defaults to Medium)
             tags: List of tags for categorization (defaults to empty list)
             due_date: Optional due date (defaults to None)
+            recurrence_pattern: Optional recurrence pattern for recurring tasks (defaults to None)
+            reminder_sent: Whether a reminder has been sent (defaults to False)
+            next_occurrence_date: Date for the next occurrence of a recurring task (defaults to None)
 
         Returns:
             The created task with a unique ID and all organization fields
@@ -56,7 +63,10 @@ class TodoService:
             status=TaskStatus.PENDING,
             priority=priority or Priority.MEDIUM,
             tags=tags or [],
-            due_date=due_date
+            due_date=due_date,
+            recurrence_pattern=recurrence_pattern or RecurrencePattern.NONE,
+            reminder_sent=reminder_sent,
+            next_occurrence_date=next_occurrence_date
         )
         task = self.repository.create_task(temp_task)
         logger.info(f"Task added successfully: {task.title} (ID: {task.id})")
@@ -92,7 +102,7 @@ class TodoService:
         logger.info(f"Retrieved {len(tasks)} tasks")
         return tasks
 
-    def update_task(self, task_id: int, title: Optional[str] = None, description: Optional[str] = None, status: Optional[TaskStatus] = None, priority: Optional[Priority] = None, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None) -> Optional[Task]:
+    def update_task(self, task_id: int, title: Optional[str] = None, description: Optional[str] = None, status: Optional[TaskStatus] = None, priority: Optional[Priority] = None, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None, recurrence_pattern: Optional[RecurrencePattern] = None, reminder_sent: Optional[bool] = None, next_occurrence_date: Optional[datetime] = None) -> Optional[Task]:
         """
         Update a task's properties.
 
@@ -104,11 +114,14 @@ class TodoService:
             priority: New priority for the task (optional)
             tags: New tags for the task (optional)
             due_date: New due date for the task (optional)
+            recurrence_pattern: New recurrence pattern for the task (optional)
+            reminder_sent: New reminder sent status for the task (optional)
+            next_occurrence_date: New next occurrence date for the task (optional)
 
         Returns:
             The updated task if successful, None if task doesn't exist
         """
-        logger.info(f"Updating task {task_id} with title={title}, description={description}, status={status}, priority={priority}, tags={tags}, due_date={due_date}")
+        logger.info(f"Updating task {task_id} with title={title}, description={description}, status={status}, priority={priority}, tags={tags}, due_date={due_date}, recurrence_pattern={recurrence_pattern}, reminder_sent={reminder_sent}, next_occurrence_date={next_occurrence_date}")
         existing_task = self.repository.get_task(task_id)
         if not existing_task:
             logger.warning(f"Cannot update task {task_id}: task not found")
@@ -128,6 +141,12 @@ class TodoService:
             updates["tags"] = tags
         if due_date is not None:
             updates["due_date"] = due_date
+        if recurrence_pattern is not None:
+            updates["recurrence_pattern"] = recurrence_pattern
+        if reminder_sent is not None:
+            updates["reminder_sent"] = reminder_sent
+        if next_occurrence_date is not None:
+            updates["next_occurrence_date"] = next_occurrence_date
 
         # Update the task with the new values
         updated_task_data = existing_task.model_dump()
@@ -310,3 +329,46 @@ class TodoService:
         if updated_task:
             logger.info(f"Task {task_id} status toggled successfully to {new_status}")
         return updated_task
+
+    def complete_recurring_task(self, task_id: int) -> Optional[Task]:
+        """
+        Complete a recurring task and create the next occurrence if applicable.
+
+        Args:
+            task_id: The ID of the recurring task to complete
+
+        Returns:
+            The updated completed task if successful, None if task doesn't exist
+        """
+        logger.info(f"Completing recurring task {task_id}")
+        task = self.get_task(task_id)
+        if not task:
+            logger.warning(f"Cannot complete recurring task {task_id}: task not found")
+            return None
+
+        # First, mark the current task as complete
+        completed_task = self.update_task(task_id, status=TaskStatus.COMPLETE)
+        if not completed_task:
+            logger.error(f"Failed to mark task {task_id} as complete")
+            return None
+
+        # Process the recurring task completion to create the next occurrence
+        next_task = self.scheduler_service.process_recurring_task_completion(completed_task)
+        if next_task:
+            # Create the next occurrence of the recurring task
+            new_task = self.add_task(
+                title=next_task.title,
+                description=next_task.description,
+                priority=next_task.priority,
+                tags=next_task.tags,
+                due_date=next_task.due_date,
+                recurrence_pattern=next_task.recurrence_pattern,
+                reminder_sent=next_task.reminder_sent,
+                next_occurrence_date=next_task.next_occurrence_date
+            )
+            logger.info(f"Created next occurrence for recurring task: {new_task.title}")
+        else:
+            logger.debug(f"Task {task_id} is not recurring, no new instance created")
+
+        logger.info(f"Recurring task {task_id} completed successfully")
+        return completed_task

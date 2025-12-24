@@ -7,8 +7,19 @@ Maintains in-memory data consistency during the session
 
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
+
+# Try to import i18n module, fallback if not available
+try:
+    from src.core.i18n import i18n_service, Language
+    I18N_AVAILABLE = True
+except ImportError:
+    I18N_AVAILABLE = False
+    print("Warning: i18n module not available. Urdu translation features will be disabled.")
+
+# Global variable to track Urdu view mode
+urdu_view_mode = False
 
 # ANSI color codes for colorful output
 class Colors:
@@ -26,6 +37,69 @@ class Colors:
 def print_colored(text, color, end='\n'):
     """Print colored text"""
     print(f"{color}{text}{Colors.ENDC}", end=end)
+
+def get_translation(key, urdu_mode=False):
+    """Get translation for a key if i18n is available"""
+    if I18N_AVAILABLE:
+        return i18n_service.get_translation(key, urdu_mode=urdu_mode)
+    else:
+        # Return English default if i18n is not available
+        translation_map = {
+            'dashboard': 'Dashboard',
+            'dashboard_ur': 'ڈیش بورڈ',
+            'total_tasks': 'Total Tasks',
+            'total_tasks_ur': 'کل ٹاسکس',
+            'pending': 'Pending',
+            'pending_ur': 'زیر التوا',
+            'completed': 'Completed',
+            'completed_ur': 'مکمل',
+            'low_priority': 'Low Priority',
+            'low_priority_ur': 'کم اہمیت',
+            'medium_priority': 'Medium Priority',
+            'medium_priority_ur': 'درمیانی اہمیت',
+            'high_priority': 'High Priority',
+            'high_priority_ur': 'اعلیٰ اہمیت',
+            'main_menu': 'Main Menu',
+            'main_menu_ur': 'مرکزی مینو',
+            'add_task': 'Add New Task',
+            'add_task_ur': 'نیا ٹاسک شامل کریں',
+            'list_tasks': 'List All Tasks',
+            'list_tasks_ur': 'تمام ٹاسکس کی فہرست',
+            'filter_search': 'Filter & Search Tasks',
+            'filter_search_ur': 'فلٹر اور تلاش ٹاسکس',
+            'update_task': 'Update Task',
+            'update_task_ur': 'ٹاسک اپ ڈیٹ کریں',
+            'complete_task': 'Complete Task',
+            'complete_task_ur': 'ٹاسک مکمل کریں',
+            'delete_task': 'Delete Task',
+            'delete_task_ur': 'ٹاسک حذف کریں',
+            'dashboard_overview': 'Dashboard Overview',
+            'dashboard_overview_ur': 'ڈیش بورڈ کا جائزہ',
+            'help': 'Help & Documentation',
+            'help_ur': 'مدد اور دستاویزات',
+            'exit': 'Exit',
+            'exit_ur': 'باہر نکلیں',
+            'no_tasks_found': 'No tasks found.',
+            'no_tasks_found_ur': 'کوئی ٹاسک نہیں ملا۔',
+            'task_added': 'Task added successfully!',
+            'task_added_ur': 'ٹاسک کامیابی سے شامل کیا گیا!',
+            'task_updated': 'Task updated successfully!',
+            'task_updated_ur': 'ٹاسک کامیابی سے اپ ڈیٹ ہو گیا!',
+            'task_deleted': 'Task deleted successfully!',
+            'task_deleted_ur': 'ٹاسک کامیابی سے حذف ہو گیا!',
+            'task_completed': 'Task completed!',
+            'task_completed_ur': 'ٹاسک مکمل ہو گیا!',
+            'urdu_mode_enabled': 'Urdu view mode enabled',
+            'urdu_mode_enabled_ur': 'اُردو ویو موڈ فعال',
+            'urdu_mode_disabled': 'Urdu view mode disabled',
+            'urdu_mode_disabled_ur': 'اُردو ویو موڈ غیر فعال',
+        }
+        # Return Urdu translation if requested and available, otherwise English
+        if urdu_mode:
+            urdu_key = key + '_ur'
+            return translation_map.get(urdu_key, translation_map.get(key, key))
+        else:
+            return translation_map.get(key, key)
 
 def clear_screen():
     """Clear the terminal screen"""
@@ -49,48 +123,96 @@ def show_dashboard(tasks_manager):
     """Display the dashboard with current task statistics"""
     tasks = tasks_manager.get_all_tasks()
 
-    print_colored("📊 DASHBOARD STATISTICS", Colors.OKCYAN)
-    print_colored("┌" + "─" * 35 + "┐", Colors.OKCYAN)
-    print_colored(f"│ Total Tasks: {len(tasks):<24} │", Colors.OKCYAN)
+    # Use translation for dashboard title
+    dashboard_title = get_translation('dashboard', urdu_view_mode)
+    print_colored(f"📊 {dashboard_title} STATISTICS", Colors.OKCYAN)
+    print_colored("┌" + "─" * 45 + "┐", Colors.OKCYAN)
+
+    total_tasks_label = get_translation('total_tasks', urdu_view_mode)
+    print_colored(f"│ {total_tasks_label}: {len(tasks):<34} │", Colors.OKCYAN)
 
     pending_tasks = sum(1 for task in tasks if task.status == 'pending')
     complete_tasks = sum(1 for task in tasks if task.status == 'complete')
 
-    print_colored(f"│ Pending: {pending_tasks:<28} │", Colors.WARNING)
-    print_colored(f"│ Completed: {complete_tasks:<26} │", Colors.OKGREEN)
+    pending_label = get_translation('pending', urdu_view_mode)
+    completed_label = get_translation('completed', urdu_view_mode)
+    print_colored(f"│ {pending_label}: {pending_tasks:<38} │", Colors.WARNING)
+    print_colored(f"│ {completed_label}: {complete_tasks:<36} │", Colors.OKGREEN)
 
     high_tasks = sum(1 for task in tasks if task.priority == 'high')
     medium_tasks = sum(1 for task in tasks if task.priority == 'medium')
     low_tasks = sum(1 for task in tasks if task.priority == 'low')
 
-    print_colored("├" + "─" * 35 + "┤", Colors.OKCYAN)
-    print_colored(f"│ 🟢 Low Priority: {low_tasks:<18} │", Colors.OKGREEN)
-    print_colored(f"│ 🟡 Medium Priority: {medium_tasks:<15} │", Colors.OKCYAN)
-    print_colored(f"│ 🔴 High Priority: {high_tasks:<17} │", Colors.FAIL)
-    print_colored("└" + "─" * 35 + "┘", Colors.OKCYAN)
+    print_colored("├" + "─" * 45 + "┤", Colors.OKCYAN)
+
+    low_priority_label = get_translation('low_priority', urdu_view_mode)
+    medium_priority_label = get_translation('medium_priority', urdu_view_mode)
+    high_priority_label = get_translation('high_priority', urdu_view_mode)
+
+    print_colored(f"│ 🟢 {low_priority_label}: {low_tasks:<28} │", Colors.OKGREEN)
+    print_colored(f"│ 🟡 {medium_priority_label}: {medium_tasks:<25} │", Colors.OKCYAN)
+    print_colored(f"│ 🔴 {high_priority_label}: {high_tasks:<27} │", Colors.FAIL)
+
+    # Add recurring tasks statistics
+    recurring_tasks = sum(1 for task in tasks if task.recurrence_pattern != 'none')
+    print_colored("├" + "─" * 45 + "┤", Colors.OKCYAN)
+    print_colored(f"│ 📅 Recurring Tasks: {recurring_tasks:<27} │", Colors.OKCYAN)
+
+    # Add due tasks statistics
+    now = datetime.now()
+    due_tasks = sum(1 for task in tasks if task.due_date and task.due_date <= now and task.status == 'pending')
+    print_colored(f"│ ⏰ Overdue Tasks: {due_tasks:<29} │", Colors.FAIL)
+
+    print_colored("└" + "─" * 45 + "┘", Colors.OKCYAN)
     print()
 
 def show_menu():
     """Display the main menu"""
-    print_colored("📋 MAIN MENU", Colors.OKCYAN)
+    menu_title = get_translation('main_menu', urdu_view_mode)
+    print_colored(f"📋 {menu_title}", Colors.OKCYAN)
     print_colored("┌" + "─" * 50 + "┐", Colors.OKCYAN)
     print_colored("│", Colors.OKCYAN, "")
-    print_colored("│ 1. ➕ Add New Task", Colors.OKGREEN)
-    print_colored("│ 2. 📋 List All Tasks", Colors.OKGREEN)
-    print_colored("│ 3. 🔍 Filter & Search Tasks", Colors.OKGREEN)
-    print_colored("│ 4. 📌 Update Task", Colors.OKGREEN)
-    print_colored("│ 5. ✅ Complete Task", Colors.OKGREEN)
-    print_colored("│ 6. 🗑️ Delete Task", Colors.OKGREEN)
-    print_colored("│ 7. 📊 Dashboard Overview", Colors.OKGREEN)
-    print_colored("│ 8. ❓ Help & Documentation", Colors.WARNING)
-    print_colored("│ 0. 🚪 Exit", Colors.FAIL)
+
+    add_task_label = get_translation('add_task', urdu_view_mode)
+    list_tasks_label = get_translation('list_tasks', urdu_view_mode)
+    filter_search_label = get_translation('filter_search', urdu_view_mode)
+    update_task_label = get_translation('update_task', urdu_view_mode)
+    complete_task_label = get_translation('complete_task', urdu_view_mode)
+    delete_task_label = get_translation('delete_task', urdu_view_mode)
+    dashboard_overview_label = get_translation('dashboard_overview', urdu_view_mode)
+    help_label = get_translation('help', urdu_view_mode)
+    exit_label = get_translation('exit', urdu_view_mode)
+
+    # Add Urdu toggle label
+    urdu_toggle_label = "🌐 Toggle Urdu View" if not urdu_view_mode else "🌐 Toggle English View"
+
+    print_colored(f"│ 1. ➕ {add_task_label}", Colors.OKGREEN)
+    print_colored(f"│ 2. 📋 {list_tasks_label}", Colors.OKGREEN)
+    print_colored(f"│ 3. 🔍 {filter_search_label}", Colors.OKGREEN)
+    print_colored(f"│ 4. 📌 {update_task_label}", Colors.OKGREEN)
+    print_colored(f"│ 5. ✅ {complete_task_label}", Colors.OKGREEN)
+    print_colored(f"│ 6. 🗑️ {delete_task_label}", Colors.OKGREEN)
+    print_colored(f"│ 7. 📊 {dashboard_overview_label}", Colors.OKGREEN)
+    print_colored(f"│ 8. 📅 Upcoming Tasks", Colors.OKGREEN)
+    print_colored(f"│ 9. 🌐 Toggle Urdu View", Colors.WARNING)  # Urdu toggle option
+    print_colored(f"│ 10. ❓ {help_label}", Colors.WARNING)
+    print_colored(f"│ 0. 🚪 {exit_label}", Colors.FAIL)
     print_colored("│", Colors.OKCYAN, "")
     print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
     print()
 
+from enum import Enum
+
+class RecurrencePattern(str, Enum):
+    """Enum for recurrence patterns"""
+    NONE = "none"
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+
 class Task:
     """Task model to represent a task in memory"""
-    def __init__(self, task_id, title, description="", status="pending", priority="medium", tags=None, due_date=None):
+    def __init__(self, task_id, title, description="", status="pending", priority="medium", tags=None, due_date=None, recurrence_pattern=None, reminder_sent=False, next_occurrence_date=None):
         self.id = task_id
         self.title = title
         self.description = description
@@ -98,6 +220,9 @@ class Task:
         self.priority = priority
         self.tags = tags or []
         self.due_date = due_date
+        self.recurrence_pattern = recurrence_pattern or RecurrencePattern.NONE
+        self.reminder_sent = reminder_sent
+        self.next_occurrence_date = next_occurrence_date
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
 
@@ -115,8 +240,14 @@ class TasksManager:
             'pending': '❌',
             'complete': '✅'
         }
+        self.recurrence_symbols = {
+            'none': '🔹',
+            'daily': '📅',
+            'weekly': '🗓️',
+            'monthly': '📅'
+        }
 
-    def add_task(self, title, description="", priority="medium", tags=None, due_date=None):
+    def add_task(self, title, description="", priority="medium", tags=None, due_date=None, recurrence_pattern=None, reminder_sent=False, next_occurrence_date=None):
         """Add a new task"""
         task = Task(
             task_id=self.next_id,
@@ -124,7 +255,10 @@ class TasksManager:
             description=description,
             priority=priority,
             tags=tags or [],
-            due_date=due_date
+            due_date=due_date,
+            recurrence_pattern=recurrence_pattern,
+            reminder_sent=reminder_sent,
+            next_occurrence_date=next_occurrence_date
         )
         self.tasks[self.next_id] = task
         self.next_id += 1
@@ -138,7 +272,7 @@ class TasksManager:
         """Get all tasks"""
         return list(self.tasks.values())
 
-    def update_task(self, task_id, title=None, description=None, status=None, priority=None, tags=None, due_date=None):
+    def update_task(self, task_id, title=None, description=None, status=None, priority=None, tags=None, due_date=None, recurrence_pattern=None, reminder_sent=None, next_occurrence_date=None):
         """Update a task"""
         task = self.get_task(task_id)
         if not task:
@@ -156,6 +290,12 @@ class TasksManager:
             task.tags = tags
         if due_date is not None:
             task.due_date = due_date
+        if recurrence_pattern is not None:
+            task.recurrence_pattern = recurrence_pattern
+        if reminder_sent is not None:
+            task.reminder_sent = reminder_sent
+        if next_occurrence_date is not None:
+            task.next_occurrence_date = next_occurrence_date
 
         task.updated_at = datetime.now()
         return task
@@ -236,34 +376,45 @@ class TasksManager:
     def display_tasks(self, tasks, title="Task List"):
         """Display tasks in a formatted table"""
         if not tasks:
-            print_colored("📭 No tasks found.", Colors.WARNING)
+            no_tasks_label = get_translation('no_tasks_found', urdu_view_mode)
+            print_colored(f"📭 {no_tasks_label}", Colors.WARNING)
             return
 
         print_colored(f"📋 {title}", Colors.OKCYAN)
-        print_colored("┌" + "─" * 80 + "┐", Colors.OKCYAN)
-        print_colored(f"│ {'ID':<3} │ {'Title':<20} │ {'Status':<10} │ {'Priority':<10} │ {'Tags':<15} │", Colors.OKCYAN)
+        status_label = get_translation('status', urdu_view_mode) or "Status"
+        priority_label = get_translation('priority', urdu_view_mode) or "Priority"
+        print_colored("┌" + "─" * 100 + "┐", Colors.OKCYAN)
+        print_colored(f"│ {'ID':<3} │ {'Title':<15} │ {status_label:<10} │ {priority_label:<10} │ {'Due Date':<12} │ {'Recurrence':<12} │ {'Tags':<15} │", Colors.OKCYAN)
 
         for task in tasks:
             status_symbol = self.status_symbols.get(task.status, '❓')
+            # Use translation for status and priority labels
+            status_text = get_translation(task.status, urdu_view_mode)
+            priority_text = get_translation(task.priority, urdu_view_mode)
             priority_emoji = self.priority_colors.get(task.priority, '❓')
-            tags_str = ", ".join(task.tags[:3])  # Show first 3 tags
-            if len(task.tags) > 3:
+            recurrence_emoji = self.recurrence_symbols.get(task.recurrence_pattern, '❓')
+            tags_str = ", ".join(task.tags[:2])  # Show first 2 tags due to space constraints
+            if len(task.tags) > 2:
                 tags_str += "..."
 
-            print_colored(f"│ {task.id:<3} │ {task.title[:18]:<20} │ {status_symbol} {task.status:<7} │ {priority_emoji} {task.priority:<7} │ {tags_str:<15} │", Colors.OKCYAN)
+            # Format due date
+            due_date_str = task.due_date.strftime("%Y-%m-%d") if task.due_date else "None"
+            recurrence_str = task.recurrence_pattern if task.recurrence_pattern else "None"
 
-        print_colored("└" + "─" * 80 + "┘", Colors.OKCYAN)
+            print_colored(f"│ {task.id:<3} │ {task.title[:13]:<15} │ {status_symbol} {status_text:<7} │ {priority_emoji} {priority_text:<7} │ {due_date_str:<12} │ {recurrence_emoji} {recurrence_str:<8} │ {tags_str:<15} │", Colors.OKCYAN)
+
+        print_colored("└" + "─" * 100 + "┘", Colors.OKCYAN)
         print()
 
 def add_task_interactive(tasks_manager):
     """Interactive task addition"""
     print_colored("\n➕ ADD NEW TASK", Colors.OKCYAN)
-    print_colored("┌" + "─" * 40 + "┐", Colors.OKCYAN)
+    print_colored("┌" + "─" * 50 + "┐", Colors.OKCYAN)
 
     title = input("│ Enter task title: ").strip()
     if not title:
         print_colored("│ ❌ Title cannot be empty!", Colors.FAIL)
-        print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+        print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
         return
 
     description = input("│ Enter task description (optional): ").strip()
@@ -289,7 +440,18 @@ def add_task_interactive(tasks_manager):
         except ValueError:
             print_colored("│ ⚠️ Invalid date format, ignoring...", Colors.WARNING)
 
-    print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+    print_colored("│", Colors.OKCYAN)
+    print_colored("│ Select recurrence pattern:", Colors.WARNING)
+    print_colored("│ 1. 🔹 None (default)", Colors.OKCYAN)
+    print_colored("│ 2. 📅 Daily", Colors.OKGREEN)
+    print_colored("│ 3. 🗓️ Weekly", Colors.OKGREEN)
+    print_colored("│ 4. 📆 Monthly", Colors.OKGREEN)
+    recurrence_choice = input("│ Enter choice (1-4, default 1): ").strip()
+
+    recurrence_map = {"1": "none", "2": "daily", "3": "weekly", "4": "monthly"}
+    recurrence_pattern = recurrence_map.get(recurrence_choice, "none")
+
+    print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
 
     try:
         task = tasks_manager.add_task(
@@ -297,7 +459,8 @@ def add_task_interactive(tasks_manager):
             description=description,
             priority=priority,
             tags=tags,
-            due_date=due_date
+            due_date=due_date,
+            recurrence_pattern=recurrence_pattern
         )
         print_colored(f"\n✅ Task added successfully! ID: {task.id}", Colors.OKGREEN)
     except Exception as e:
@@ -423,19 +586,19 @@ def filter_search_menu(tasks_manager):
 def update_task_interactive(tasks_manager):
     """Interactive task update"""
     print_colored("\n📌 UPDATE TASK", Colors.OKCYAN)
-    print_colored("┌" + "─" * 40 + "┐", Colors.OKCYAN)
+    print_colored("┌" + "─" * 50 + "┐", Colors.OKCYAN)
 
     try:
         task_id = int(input("│ Enter task ID to update: "))
     except ValueError:
         print_colored("│ ❌ Invalid task ID!", Colors.FAIL)
-        print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+        print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
         return
 
     task = tasks_manager.get_task(task_id)
     if not task:
         print_colored(f"│ ❌ Task with ID {task_id} not found!", Colors.FAIL)
-        print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+        print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
         return
 
     print_colored("│ Current task:", Colors.WARNING)
@@ -465,7 +628,11 @@ def update_task_interactive(tasks_manager):
     else:
         due_date = task.due_date
 
-    print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+    print("│ New recurrence pattern (none/daily/weekly/monthly, Enter to keep current): ", end="")
+    recurrence_pattern = input().strip().lower()
+    recurrence_pattern = recurrence_pattern if recurrence_pattern in ["none", "daily", "weekly", "monthly"] else task.recurrence_pattern
+
+    print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
 
     try:
         updated_task = tasks_manager.update_task(
@@ -474,7 +641,8 @@ def update_task_interactive(tasks_manager):
             description=description,
             priority=priority,
             tags=tags,
-            due_date=due_date
+            due_date=due_date,
+            recurrence_pattern=recurrence_pattern
         )
         if updated_task:
             print_colored(f"\n✅ Task {task_id} updated successfully!", Colors.OKGREEN)
@@ -486,29 +654,130 @@ def update_task_interactive(tasks_manager):
 def complete_task_interactive(tasks_manager):
     """Interactive task completion"""
     print_colored("\n✅ COMPLETE TASK", Colors.OKCYAN)
-    print_colored("┌" + "─" * 40 + "┐", Colors.OKCYAN)
+    print_colored("┌" + "─" * 50 + "┐", Colors.OKCYAN)
 
     try:
         task_id = int(input("│ Enter task ID to complete: "))
     except ValueError:
         print_colored("│ ❌ Invalid task ID!", Colors.FAIL)
-        print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+        print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
         return
 
     task = tasks_manager.get_task(task_id)
     if not task:
         print_colored(f"│ ❌ Task with ID {task_id} not found!", Colors.FAIL)
-        print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+        print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
         return
 
-    print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
-
-    updated_task = tasks_manager.toggle_task_status(task_id)
-    if updated_task:
-        status = "completed" if updated_task.status == 'complete' else "marked as pending"
-        print_colored(f"\n✅ Task {task_id} {status}!", Colors.OKGREEN)
+    print_colored("│ Task details:", Colors.WARNING)
+    print_colored(f"│ Title: {task.title}", Colors.OKCYAN)
+    print_colored(f"│ Recurrence: {task.recurrence_pattern}", Colors.OKCYAN)
+    print_colored("│", Colors.OKCYAN)
+    if task.recurrence_pattern != "none":
+        print_colored("│ This is a recurring task. Complete and create next occurrence? (y/N): ", Colors.WARNING, end="")
+        create_next = input().strip().lower()
+        if create_next == 'y':
+            # Complete the current task and create the next occurrence
+            updated_task = tasks_manager.toggle_task_status(task_id)
+            if updated_task:
+                # Create a new task with the same properties but for the next occurrence
+                next_occurrence_date = calculate_next_occurrence(datetime.now(), task.recurrence_pattern)
+                new_task = tasks_manager.add_task(
+                    title=task.title,
+                    description=task.description,
+                    priority=task.priority,
+                    tags=task.tags,
+                    due_date=next_occurrence_date,
+                    recurrence_pattern=task.recurrence_pattern
+                )
+                print_colored(f"\n✅ Task {task_id} completed and next occurrence created (ID: {new_task.id})!", Colors.OKGREEN)
+            else:
+                print_colored(f"\n❌ Error completing task {task_id}!", Colors.FAIL)
+        else:
+            updated_task = tasks_manager.toggle_task_status(task_id)
+            if updated_task:
+                status = "completed" if updated_task.status == 'complete' else "marked as pending"
+                print_colored(f"\n✅ Task {task_id} {status}!", Colors.OKGREEN)
+            else:
+                print_colored(f"\n❌ Error completing task {task_id}!", Colors.FAIL)
     else:
-        print_colored(f"\n❌ Error completing task {task_id}!", Colors.FAIL)
+        updated_task = tasks_manager.toggle_task_status(task_id)
+        if updated_task:
+            status = "completed" if updated_task.status == 'complete' else "marked as pending"
+            print_colored(f"\n✅ Task {task_id} {status}!", Colors.OKGREEN)
+        else:
+            print_colored(f"\n❌ Error completing task {task_id}!", Colors.FAIL)
+
+    print_colored("└" + "─" * 50 + "┘", Colors.OKCYAN)
+
+def calculate_next_occurrence(current_date, pattern):
+    """Calculate the next occurrence date based on the recurrence pattern."""
+    if pattern == "daily":
+        return current_date + timedelta(days=1)
+    elif pattern == "weekly":
+        return current_date + timedelta(weeks=1)
+    elif pattern == "monthly":
+        # Calculate next month, handling month-end edge cases
+        next_month = current_date.month + 1
+        next_year = current_date.year
+        if next_month > 12:
+            next_month = 1
+            next_year += 1
+        # Handle month-end scenarios (e.g., Jan 31 -> Feb 28/29)
+        next_day = current_date.day
+        max_days_in_month = days_in_month(next_year, next_month)
+        if next_day > max_days_in_month:
+            next_day = max_days_in_month
+        return current_date.replace(year=next_year, month=next_month, day=next_day)
+    else:
+        return None
+
+def days_in_month(year, month):
+    """Calculate the number of days in a given month."""
+    if month in [1, 3, 5, 7, 8, 10, 12]:
+        return 31
+    elif month in [4, 6, 9, 11]:
+        return 30
+    elif month == 2:
+        return 29 if is_leap_year(year) else 28
+    else:
+        raise ValueError(f"Invalid month: {month}")
+
+def is_leap_year(year):
+    """Determine if a year is a leap year."""
+    return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
+
+def upcoming_tasks_view(tasks_manager):
+    """Display upcoming tasks due in the next 7 days"""
+    print_colored("\n📅 UPCOMING TASKS", Colors.OKCYAN)
+    print_colored("┌" + "─" * 100 + "┐", Colors.OKCYAN)
+
+    days = input("│ Enter number of days to look ahead (default 7): ").strip()
+    try:
+        days = int(days) if days else 7
+    except ValueError:
+        days = 7
+
+    print_colored("└" + "─" * 100 + "┘", Colors.OKCYAN)
+
+    all_tasks = tasks_manager.get_all_tasks()
+    upcoming_tasks = []
+    now = datetime.now()
+    future_limit = now + timedelta(days=days)
+
+    for task in all_tasks:
+        if task.due_date and task.status == 'pending':
+            if now <= task.due_date <= future_limit:
+                upcoming_tasks.append(task)
+
+    # Sort by due date
+    upcoming_tasks.sort(key=lambda t: t.due_date if t.due_date else datetime.max)
+
+    if not upcoming_tasks:
+        print_colored(f"\n📭 No tasks are due in the next {days} days.", Colors.WARNING)
+        return
+
+    tasks_manager.display_tasks(upcoming_tasks, f"Upcoming Tasks ({days} Days)")
 
 def delete_task_interactive(tasks_manager):
     """Interactive task deletion"""
@@ -539,6 +808,20 @@ def delete_task_interactive(tasks_manager):
         print_colored("│ ❌ Deletion cancelled.", Colors.WARNING)
 
     print_colored("└" + "─" * 40 + "┘", Colors.OKCYAN)
+
+
+def toggle_urdu_view():
+    """Toggle Urdu view mode for priority and status labels"""
+    global urdu_view_mode
+    urdu_view_mode = not urdu_view_mode
+
+    if urdu_view_mode:
+        mode_status = get_translation('urdu_mode_enabled', True)
+    else:
+        mode_status = get_translation('urdu_mode_disabled', False)
+
+    print_colored(f"\n🌐 {mode_status}", Colors.OKGREEN)
+    input("\nPress Enter to continue...")
 
 def show_help():
     """Show help and documentation"""
@@ -617,6 +900,11 @@ def main():
             # Just refresh the dashboard
             pass
         elif choice == "8":
+            upcoming_tasks_view(tasks_manager)
+            input("\nPress Enter to continue...")
+        elif choice == "9":
+            toggle_urdu_view()  # Toggle Urdu view mode
+        elif choice == "10":
             show_help()
         elif choice == "0":
             print_colored("\n👋 Thank you for using Todo Dashboard! Goodbye!", Colors.OKGREEN)

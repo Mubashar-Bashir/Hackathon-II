@@ -99,6 +99,22 @@ class SortCriteria(BaseModel):
     order: SortOrder = SortOrder.ASC
 
 
+class RecurrencePattern(str, Enum):
+    """
+    Enum representing the possible recurrence patterns for tasks.
+
+    Attributes:
+        NONE: No recurrence (default)
+        DAILY: Task repeats every day
+        WEEKLY: Task repeats every week
+        MONTHLY: Task repeats every month
+    """
+    NONE = "none"
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+
+
 class Task(BaseModel):
     """
     Pydantic model representing a single todo task.
@@ -113,6 +129,9 @@ class Task(BaseModel):
         priority: Priority level of the task (default: MEDIUM)
         tags: List of tags for categorization (default: empty list)
         due_date: Optional due date for the task (default: None)
+        recurrence_pattern: Recurrence pattern for recurring tasks (default: RecurrencePattern.NONE)
+        reminder_sent: Whether a reminder has been sent for this task (default: False)
+        next_occurrence_date: Date for the next occurrence of a recurring task (default: None)
     """
     id: int
     title: str = Field(..., min_length=1, max_length=200)
@@ -131,6 +150,19 @@ class Task(BaseModel):
     due_date: Optional[datetime] = Field(
         default=None,
         description="Optional due date for the task"
+    )  # None for backward compatibility
+    # Fields for time automation features
+    recurrence_pattern: RecurrencePattern = Field(
+        default=RecurrencePattern.NONE,
+        description="Recurrence pattern for recurring tasks (none, daily, weekly, monthly)"
+    )  # Default to none for backward compatibility
+    reminder_sent: bool = Field(
+        default=False,
+        description="Whether a reminder has been sent for this task"
+    )  # False for backward compatibility
+    next_occurrence_date: Optional[datetime] = Field(
+        default=None,
+        description="Date for the next occurrence of a recurring task"
     )  # None for backward compatibility
 
     def __init__(self, **data):
