@@ -1,45 +1,50 @@
-<!--
-Sync Impact Report:
-Version change: 1.1.0 → 1.2.0
-Added sections: Todo CLI app specific requirements and constraints
-Removed sections: General references not specific to Phase I
-Templates requiring updates:
-- .specify/templates/plan-template.md: ✅ updated to align with new principles
-- .specify/templates/spec-template.md: ✅ updated to align with new principles
-- .specify/templates/tasks-template.md: ✅ updated to align with new principles
-- All command files in .claude/commands/: ✅ updated to align with new principles
-Follow-up TODOs: None
--->
-# Hackathon-II Constitution: Todo CLI App (Phase I)
-<!-- From CLI to Distributed Cloud-Native AI Systems - Evolution of Todo -->
+# Project Constitution
 
-## Core Principles
+## Purpose
+This constitution defines the core principles, constraints, and values that govern the Evolution of Todo project. All development activities must align with these principles.
 
-### I. Evolutionary Strategy (The "Branch & Layer" Rule)
-Single Core, Multiple Adapters: We do not create separate folders for phases. We evolve a single codebase with hexagonal architecture boundary where business logic resides in todo-app/src/core/ and must be "headless" (UI-agnostic). Git Snapshots: Every phase completion must be marked with a Git Tag (e.g., v1-cli, v2-web). Modular Expansion: New phases add new directories (e.g., todo-app/src/api/ for Phase II, todo-app/src/infra/ for Phase IV) rather than overwriting existing ones. For Phase I, this means implementing the Basic Level features in the todo-app directory structure.
+## Core Values
+- **Spec-Driven Development**: All features must be specified before implementation
+- **Deterministic Development**: Clear, predictable development process
+- **Quality First**: Maintain high code quality and comprehensive testing
+- **User-Centric**: Prioritize user value and experience in all decisions
 
-### II. Architectural DNA
-Logic Separation: todo-app/src/models/: Shared Pydantic V2 schemas. todo-app/src/core/: Domain logic (Todo Managers, Services). todo-app/src/ui/: CLI interfaces (Phase I). todo-app/src/storage/: Abstract Repository Pattern (In-Memory for Phase I). Strict Type Safety: Python 3.13+ with mandatory Type Hints. Package Management: Absolute enforcement of uv for all dependency operations. Phase I Requirements: Implement all 5 Basic Level features (Add, Delete, Update, View, Mark Complete).
+## Architecture Principles
+- **Modularity**: Components should be loosely coupled and highly cohesive
+- **Testability**: All code must be testable with clear unit and integration tests
+- **Maintainability**: Code should be readable, documented, and follow consistent patterns
+- **Performance**: Optimize for responsive user experience
+- **Security**: Follow security best practices and validate all inputs
 
-### III. Test-First (NON-NEGOTIABLE)
-TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced. Verification Mandate: Every task generated in /sp.tasks MUST have a [ ] Verification sub-task (manual test or pytest). For Phase I, all Basic Level features must have comprehensive test coverage with minimum 80% test coverage.
+## Technology Constraints
+- **Python 3.13+**: Use only Python 3.13+ features and libraries
+- **CLI-First**: Maintain command-line interface as primary interface
+- **Cross-Platform**: Ensure compatibility across major operating systems
+- **Dependency Management**: Use uv for package management
+- **Type Safety**: Use Pydantic V2 for data validation and typing
 
-### IV. SDD Execution Quality Gates
-The Cascade Requirement: Follow Constitution ➡️ Spec ➡️ Plan ➡️ Tasks ➡️ Implementation. Reusable Intelligence: Always invoke @systems-architect for plan reviews and @code-reviewer for code audits. For Phase I, ensure all 5 Basic Level features are implemented before moving to Intermediate or Advanced features.
+## Development Process
+- **Specification First**: Use `/sp.specify` to define features before implementation
+- **Planning Required**: Use `/sp.plan` to design architecture before coding
+- **Task Breakdown**: Use `/sp.tasks` to create atomic, testable tasks
+- **Implementation**: Use `/sp.implement` to execute tasks systematically
+- **No Code Without Tasks**: Never write code without a corresponding task
 
-### V. Todo CLI Feature Requirements
-Basic Level Implementation: Implement core functionality first - Add Task (with title and description), Delete Task (by ID), Update Task (by ID), View Task List (with status indicators), Mark as Complete (toggle status). These 5 features form the MVP of Phase I. Each feature must be CLI-accessible with proper error handling and user feedback.
+## Quality Standards
+- **Testing**: All features must include unit tests with >80% coverage
+- **Documentation**: All public interfaces must be documented
+- **Code Review**: All changes must be reviewed before merging
+- **Validation**: Specifications must be validated before implementation
+- **Error Handling**: All error paths must be explicitly handled
 
-### VI. Success Criteria and Phase I Deliverables
-Phase I Success: Complete implementation of all 5 Basic Level features with proper CLI interface using Typer. Deliverables: GitHub repository with constitution, specs/todo-app/spec.md, specs/todo-app/plan.md, specs/todo-app/tasks.md, todo-app/src/ folder with Python source code, pyproject.toml, README.md with setup instructions, CLAUDE.md with Claude Code instructions, and working console application. Traceability: ADRs exist for every major architectural decision. Professionalism: Code passes ruff linting and includes Google-style docstrings.
+## Project Scope
+- **Phase I**: CLI-based todo application with time automation features
+- **Phase II**: API layer with SQL persistence
+- **Phase III**: Web interface (future consideration)
 
-## Development Standards
-Technology Stack: UV, Python 3.13+, Pydantic V2, Typer, Rich, Claude Code, Spec-Kit Plus. Components must be compatible with Claude Code environment. Deployment must support dynamic loading of RI components. Strict enforcement of Python 3.13+, Pydantic V2, Typer, Rich, and uv package management. All code must be agent-generated with no manual syntax.
-
-## Development Workflow
-All RI components require specification before implementation; Code reviews must verify adherence to SDD-RI principles and invoke @code-reviewer agent; Testing gates require minimum coverage for all intelligence components with pytest; Deployment approval for new RI components follows standard process; All plans must be reviewed by @systems-architect agent. For Phase I, focus on CLI interface with in-memory storage, following the spec-driven development approach.
-
-## Governance
-All PRs/reviews must verify compliance with SDD-RI principles and Evolutionary Strategy; Complexity must be justified with intelligence reuse potential and architectural alignment; Use this constitution for runtime development guidance. All changes must follow the Cascade Requirement: Constitution ➡️ Spec ➡️ Plan ➡️ Tasks ➡️ Implementation. Phase I deliverables must include GitHub repository with constitution, specs history, todo-app/src folder, README.md, CLAUDE.md, and working console application demonstrating all 5 Basic Level features.
-
-**Version**: 1.2.0 | **Ratified**: 2025-12-23 | **Last Amended**: 2025-12-23
+## Non-Negotiables
+- All development follows the Spec-Kit Plus workflow: Specify → Plan → Tasks → Implement
+- No feature creep without proper specification
+- Maintain backward compatibility where possible
+- Follow Python best practices and PEP standards
+- Use structured logging for observability

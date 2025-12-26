@@ -1,0 +1,4 @@
+#!/bin/bash
+# Wrapper script for MCP Server
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$SCRIPT_DIR/mcp/servers/spec-kit-plus/final_server.py"

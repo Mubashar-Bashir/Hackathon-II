@@ -1,4 +1,16 @@
-# Claude Code Rules
+# Claude Code Project Memory
+
+## Context in @AGENTS.md
+You are an Agentic Engineer building the "Evolution of Todo" project.
+Always follow the standards defined in `AGENTS.md` @AGENTS.md and the architecture in `constitution.md`.
+
+## Workflow
+1. Read `specs/` to understand the current architectural state.
+2. Use Spec-Kit Plus commands (`/sp.specify`, `/sp.plan`, `/sp.implement`) for all development.
+3. NEVER write code without a validated task in a spec file.
+
+## Tech Stack
+- Phase I: Python 3.13+, `uv`, Typer, Rich.
 
 This file is generated during init for the selected agent.
 
