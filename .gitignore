@@ -65,3 +65,10 @@ htmlcov/
 todo-app/__pycache__/
 todo-app/*.py[cod]
 todo-app/*$py.class
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/

@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.hypothesis/
+venv/
+env/
+ENV/
+.venv/
+.env
+.env.local
+.env.backup
+.env.local.backup
+.env.example
+.env*
+.env.*.local
+.python-version
+.pyre/
+.pytype/
+.ipynb_checkpoints
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.dev
+.env.test
+.env.prod
+
+# Database
+*.sqlite
+*.sqlite3
+
+# Testing
+.pytest_cache/
+.coverage/
+htmlcov/
+
+# Node modules (if frontend exists)
+node_modules/

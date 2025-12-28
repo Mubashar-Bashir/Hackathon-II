@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "name": "spec-kitplus-mcp",
+  "tools": [
+    {
+      "name": "sp.specify",
+      "description": "Create or update feature specifications",
+      "command": {
+        "shell": [
+          "python",
+          "-c",
+          "print('sp.specify command executed')"
+        ]
+      }
+    },
+    {
+      "name": "sp.plan",
+      "description": "Create technical implementation plans",
+      "command": {
+        "shell": [
+          "python",
+          "-c",
+          "print('sp.plan command executed')"
+        ]
+      }
+    },
+    {
+      "name": "sp.tasks",
+      "description": "Generate task breakdowns",
+      "command": {
+        "shell": [
+          "python",
+          "-c",
+          "print('sp.tasks command executed')"
+        ]
+      }
+    },
+    {
+      "name": "sp.implement",
+      "description": "Execute implementation tasks",
+      "command": {
+        "shell": [
+          "python",
+          "-c",
+          "print('sp.implement command executed')"
+        ]
+      }
+    }
+  ]
+}

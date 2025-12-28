@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: CloudBlueprint
+metadata:
+  description: Cloud-ready blueprint for the Todo CLI application
+  name: todo-app-blueprint
+  version: 0.1.0
+spec:
+  application:
+    architecture: hexagonal
+    language: python
+    name: todo-app
+    patterns:
+    - hexagonal
+    - repository
+    type: cli
+    version: '3.13'
+  container:
+    baseImage: python:3.13-slim
+    healthCheck:
+      command:
+      - python
+      - -c
+      - import sys; from src.main import main; print('App is healthy')
+      interval: 30
+      timeout: 3
+    port: null
+    security:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+  dependencies:
+    python:
+    - typer>=0.12.0
+    - rich>=13.7.0
+    - pydantic>=2.5.0
+    - requires = ["setuptools>=61.0", "wheel"]
+  deployment:
+    environments:
+    - development
+    - staging
+    - production
+    replicas: 1
+    strategy: rolling
+  evolutionPath:
+    phase1: CLI application (current)
+    phase2: Web API with REST endpoints
+    phase3: Microservices architecture
+    phase4: Cloud-native with event-driven architecture
+  monitoring:
+    logging:
+      format: json
+      level: INFO
+    metrics: false
+  storage:
+    backup: false
+    persistence: false
+    type: ephemeral
