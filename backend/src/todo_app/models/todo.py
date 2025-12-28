@@ -121,6 +121,7 @@ class Task(BaseModel):
 
     Attributes:
         id: Unique identifier for the task
+        user_id: ID of the user who owns this task
         title: Title of the task (required, 1-200 characters)
         description: Optional description of the task (0-1000 characters)
         status: Current status of the task (pending or complete)
@@ -134,6 +135,7 @@ class Task(BaseModel):
         next_occurrence_date: Date for the next occurrence of a recurring task (default: None)
     """
     id: int
+    user_id: int = Field(default=1, description="ID of the user who owns this task")  # Default to 1 for backward compatibility
     title: str = Field(..., min_length=1, max_length=200)
     description: str = Field(default="", max_length=1000)
     status: TaskStatus = TaskStatus.PENDING

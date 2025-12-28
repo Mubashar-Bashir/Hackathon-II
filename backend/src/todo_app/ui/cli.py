@@ -32,6 +32,7 @@ app = typer.Typer(help="A command-line interface for managing todo tasks")
 @app.command(help="Add a new task with the given title and description")
 def add(title: str = typer.Argument(..., help="The title of the task"),
         description: Optional[str] = typer.Argument(default="", help="The description of the task"),
+        user_id: int = typer.Option(1, "--user-id", "-u", help="ID of the user creating the task (default: 1)"),
         priority: Optional[Priority] = typer.Option(None, "--priority", "-p", help="Priority level (low, medium, high)"),
         tags: Optional[List[str]] = typer.Option(None, "--tag", "-t", help="Tags for the task (can be used multiple times)"),
         due_date: Optional[str] = typer.Option(None, "--due-date", "-d", help="Due date in ISO format (YYYY-MM-DD)"),
@@ -70,13 +71,14 @@ def add(title: str = typer.Argument(..., help="The title of the task"),
         task = service.add_task(
             title.strip(),
             description.strip() if description else "",
+            user_id=user_id,
             priority=priority,
             tags=tags,
             due_date=parsed_due_date,
             recurrence_pattern=parsed_recurrence
         )
-        logger.info(f"Added task: {task.title} (ID: {task.id})")
-        console.print(f"[green]✓[/green] Added task: {task.title} (ID: {task.id})")
+        logger.info(f"Added task: {task.title} (ID: {task.id}) for user {user_id}")
+        console.print(f"[green]✓[/green] Added task: {task.title} (ID: {task.id}) for user {user_id}")
     except Exception as e:
         logger.error(f"Error adding task: {str(e)}")
         console.print(f"[red]✗[/red] Error adding task: {str(e)}")
@@ -85,28 +87,29 @@ def add(title: str = typer.Argument(..., help="The title of the task"),
 
 @app.command(help="Mark a task as complete/incomplete")
 def complete(task_id: int = typer.Argument(..., help="The ID of the task to mark as complete/incomplete"),
+             user_id: int = typer.Option(1, "--user-id", "-u", help="ID of the user completing the task (default: 1)"),
              recurring: bool = typer.Option(False, "--recurring", "-r", help="Handle recurring task completion (creates next occurrence)")):
     """Mark a task as complete/incomplete"""
     try:
         if recurring:
             # Handle recurring task completion
-            task = service.complete_recurring_task(task_id)
+            task = service.complete_recurring_task(task_id, user_id=user_id)
             if task:
-                logger.info(f"Recurring task {task_id} marked as complete and next occurrence created")
-                console.print(f"[green]✓[/green] Recurring task {task_id} marked as complete and next occurrence created")
+                logger.info(f"Recurring task {task_id} marked as complete and next occurrence created for user {user_id}")
+                console.print(f"[green]✓[/green] Recurring task {task_id} marked as complete and next occurrence created for user {user_id}")
             else:
-                logger.warning(f"Task with ID {task_id} not found or error occurred")
-                console.print(f"[red]✗[/red] Task with ID {task_id} not found or error occurred")
+                logger.warning(f"Task with ID {task_id} not found or error occurred for user {user_id}")
+                console.print(f"[red]✗[/red] Task with ID {task_id} not found or error occurred for user {user_id}")
         else:
             # Handle regular task completion
-            task = service.toggle_task_status(task_id)
+            task = service.toggle_task_status(task_id, user_id=user_id)
             if task:
                 status = "complete" if task.status == TaskStatus.COMPLETE else "pending"
-                logger.info(f"Task {task_id} marked as {status}")
-                console.print(f"[green]✓[/green] Task {task_id} marked as {status}")
+                logger.info(f"Task {task_id} marked as {status} for user {user_id}")
+                console.print(f"[green]✓[/green] Task {task_id} marked as {status} for user {user_id}")
             else:
-                logger.warning(f"Task with ID {task_id} not found")
-                console.print(f"[red]✗[/red] Task with ID {task_id} not found")
+                logger.warning(f"Task with ID {task_id} not found for user {user_id}")
+                console.print(f"[red]✗[/red] Task with ID {task_id} not found for user {user_id}")
     except Exception as e:
         logger.error(f"Error completing task: {str(e)}")
         console.print(f"[red]✗[/red] Error completing task: {str(e)}")
@@ -115,6 +118,7 @@ def complete(task_id: int = typer.Argument(..., help="The ID of the task to mark
 @app.command(help="Update a task's title, description, priority, tags, due date, or recurrence pattern")
 def update(
     task_id: int = typer.Argument(..., help="The ID of the task to update"),
+    user_id: int = typer.Option(1, "--user-id", "-u", help="ID of the user updating the task (default: 1)"),
     title: Optional[str] = typer.Option(None, "--title", "-t", help="New title for the task"),
     description: Optional[str] = typer.Option(None, "--description", "-d", help="New description for the task"),
     priority: Optional[Priority] = typer.Option(None, "--priority", "-p", help="New priority for the task (low, medium, high)"),
@@ -155,6 +159,7 @@ def update(
 
         task = service.update_task(
             task_id,
+            user_id=user_id,
             title=title,
             description=description,
             priority=priority,
@@ -163,27 +168,28 @@ def update(
             recurrence_pattern=recurrence
         )
         if task:
-            logger.info(f"Task {task_id} updated")
-            console.print(f"[green]✓[/green] Task {task_id} updated")
+            logger.info(f"Task {task_id} updated for user {user_id}")
+            console.print(f"[green]✓[/green] Task {task_id} updated for user {user_id}")
         else:
-            logger.warning(f"Task with ID {task_id} not found")
-            console.print(f"[red]✗[/red] Task with ID {task_id} not found")
+            logger.warning(f"Task with ID {task_id} not found for user {user_id}")
+            console.print(f"[red]✗[/red] Task with ID {task_id} not found for user {user_id}")
     except Exception as e:
         logger.error(f"Error updating task: {str(e)}")
         console.print(f"[red]✗[/red] Error updating task: {str(e)}")
         raise typer.Exit(code=1)
 
 @app.command(help="Delete a task by ID")
-def delete(task_id: int = typer.Argument(..., help="The ID of the task to delete")):
+def delete(task_id: int = typer.Argument(..., help="The ID of the task to delete"),
+          user_id: int = typer.Option(1, "--user-id", "-u", help="ID of the user deleting the task (default: 1)")):
     """Delete a task by ID"""
     try:
-        success = service.delete_task(task_id)
+        success = service.delete_task(task_id, user_id=user_id)
         if success:
-            logger.info(f"Task {task_id} deleted")
-            console.print(f"[green]✓[/green] Task {task_id} deleted")
+            logger.info(f"Task {task_id} deleted for user {user_id}")
+            console.print(f"[green]✓[/green] Task {task_id} deleted for user {user_id}")
         else:
-            logger.warning(f"Task with ID {task_id} not found")
-            console.print(f"[red]✗[/red] Task with ID {task_id} not found")
+            logger.warning(f"Task with ID {task_id} not found for user {user_id}")
+            console.print(f"[red]✗[/red] Task with ID {task_id} not found for user {user_id}")
     except Exception as e:
         logger.error(f"Error deleting task: {str(e)}")
         console.print(f"[red]✗[/red] Error deleting task: {str(e)}")
@@ -202,13 +208,14 @@ def view_urdu():
 
 @app.command(help="List all tasks in a tabular format with optional Urdu translation")
 def list_tasks(
+    user_id: int = typer.Option(1, "--user-id", "-u", help="ID of the user viewing tasks (default: 1)"),
     status: Optional[TaskStatus] = typer.Option(None, "--status", help="Filter by status (pending, complete)"),
     priority: Optional[Priority] = typer.Option(None, "--priority", help="Filter by priority (low, medium, high)"),
     tag: Optional[List[str]] = typer.Option(None, "--tag", help="Filter by tag (can be used multiple times)"),
     search: Optional[str] = typer.Option(None, "--search", "-s", help="Search in title or description"),
     sort_by: Optional[str] = typer.Option(None, "--sort-by", help="Sort by field (title, priority, due_date, created_at, status)"),
     sort_order: Optional[str] = typer.Option("asc", "--sort-order", help="Sort order (asc, desc)"),
-    urdu: bool = typer.Option(False, "--urdu", "-u", help="Display priority labels in Urdu")
+    urdu: bool = typer.Option(False, "--urdu", help="Display priority labels in Urdu")
 ):
     """List all tasks in a tabular format with optional Urdu translation for priority labels"""
     try:
@@ -230,6 +237,7 @@ def list_tasks(
             sort_order_enum = SortOrder.DESC
 
         tasks = service.list_tasks(
+            user_id=user_id,
             status=status,
             priority=priority,
             tags=tag,
@@ -309,19 +317,21 @@ def list_tasks(
 
 
 @app.command(help="Show upcoming tasks due in the next specified number of days")
-def upcoming(days: int = typer.Option(7, "--days", "-d", min=1, max=30, help="Number of days to look ahead (default: 7, max: 30)")):
+def upcoming(user_id: int = typer.Option(1, "--user-id", "-u", help="ID of the user viewing upcoming tasks (default: 1)"),
+             days: int = typer.Option(7, "--days", "-d", min=1, max=30, help="Number of days to look ahead (default: 7, max: 30)")):
     """Show upcoming tasks due in the next specified number of days"""
     try:
-        all_tasks = service.list_tasks()
+        # Get only the user's tasks
+        user_tasks = service.list_tasks(user_id=user_id)
 
         # Get upcoming tasks using the scheduler service
-        upcoming_tasks = scheduler_service.get_upcoming_tasks(all_tasks, days)
+        upcoming_tasks = scheduler_service.get_upcoming_tasks(user_tasks, days)
 
         if not upcoming_tasks:
-            console.print(f"[yellow]No tasks are due in the next {days} days.[/yellow]")
+            console.print(f"[yellow]No tasks are due in the next {days} days for user {user_id}.[/yellow]")
             return
 
-        table = Table(title=f"Upcoming Tasks (Next {days} Days)")
+        table = Table(title=f"Upcoming Tasks for User {user_id} (Next {days} Days)")
         table.add_column("ID", style="cyan", no_wrap=True)
         table.add_column("Title", style="magenta")
         table.add_column("Description", style="green")

@@ -12,9 +12,10 @@ from ..models.todo import TaskStatus
 console = Console()
 
 class InteractiveTodoCLI:
-    def __init__(self):
+    def __init__(self, user_id: int = 1):
         self.repository = InMemoryTaskRepository()
         self.service = TodoService(self.repository)
+        self.user_id = user_id
         self.running = True
 
     def display_menu(self):
@@ -38,20 +39,20 @@ class InteractiveTodoCLI:
 
             description = console.input("Enter todo description (optional): ").strip()
 
-            task = self.service.add_task(title, description)
-            console.print(f"[green]✓[/green] Added task: {task.title} (ID: {task.id})")
+            task = self.service.add_task(title, description, user_id=self.user_id)
+            console.print(f"[green]✓[/green] Added task: {task.title} (ID: {task.id}) for user {self.user_id}")
         except KeyboardInterrupt:
             console.print("\n[yellow]Operation cancelled.[/yellow]")
 
     def list_todos(self):
         """List all todos in a table format."""
-        tasks = self.service.list_tasks()
+        tasks = self.service.list_tasks(user_id=self.user_id)
 
         if not tasks:
-            console.print("[yellow]No tasks found.[/yellow]")
+            console.print(f"[yellow]No tasks found for user {self.user_id}.[/yellow]")
             return
 
-        table = Table(title="Todo List")
+        table = Table(title=f"Todo List for User {self.user_id}")
         table.add_column("ID", style="cyan", no_wrap=True)
         table.add_column("Title", style="magenta")
         table.add_column("Description", style="green")
@@ -73,8 +74,9 @@ class InteractiveTodoCLI:
     def update_todo(self):
         """Update a todo interactively."""
         try:
-            if not self.service.list_tasks():
-                console.print("[yellow]No tasks available to update.[/yellow]")
+            user_tasks = self.service.list_tasks(user_id=self.user_id)
+            if not user_tasks:
+                console.print(f"[yellow]No tasks available to update for user {self.user_id}.[/yellow]")
                 return
 
             task_id = int(console.input("Enter task ID to update: "))
@@ -82,6 +84,11 @@ class InteractiveTodoCLI:
 
             if not task:
                 console.print(f"[red]Task with ID {task_id} not found.[/red]")
+                return
+
+            # Check if the task belongs to the current user
+            if task.user_id != self.user_id:
+                console.print(f"[red]Task with ID {task_id} does not belong to user {self.user_id}.[/red]")
                 return
 
             console.print(f"Current task: {task.title}")
@@ -92,11 +99,11 @@ class InteractiveTodoCLI:
             title = new_title if new_title else None
             description = new_description if new_description else None
 
-            updated_task = self.service.update_task(task_id, title=title, description=description)
+            updated_task = self.service.update_task(task_id, user_id=self.user_id, title=title, description=description)
             if updated_task:
-                console.print(f"[green]✓[/green] Task {task_id} updated successfully")
+                console.print(f"[green]✓[/green] Task {task_id} updated successfully for user {self.user_id}")
             else:
-                console.print(f"[red]✗[/red] Failed to update task {task_id}")
+                console.print(f"[red]✗[/red] Failed to update task {task_id} for user {self.user_id}")
         except ValueError:
             console.print("[red]Please enter a valid task ID (number).[/red]")
         except KeyboardInterrupt:
@@ -105,17 +112,18 @@ class InteractiveTodoCLI:
     def delete_todo(self):
         """Delete a todo interactively."""
         try:
-            if not self.service.list_tasks():
-                console.print("[yellow]No tasks available to delete.[/yellow]")
+            user_tasks = self.service.list_tasks(user_id=self.user_id)
+            if not user_tasks:
+                console.print(f"[yellow]No tasks available to delete for user {self.user_id}.[/yellow]")
                 return
 
             task_id = int(console.input("Enter task ID to delete: "))
-            success = self.service.delete_task(task_id)
+            success = self.service.delete_task(task_id, user_id=self.user_id)
 
             if success:
-                console.print(f"[green]✓[/green] Task {task_id} deleted")
+                console.print(f"[green]✓[/green] Task {task_id} deleted for user {self.user_id}")
             else:
-                console.print(f"[red]✗[/red] Task with ID {task_id} not found")
+                console.print(f"[red]✗[/red] Task with ID {task_id} not found for user {self.user_id}")
         except ValueError:
             console.print("[red]Please enter a valid task ID (number).[/red]")
         except KeyboardInterrupt:
@@ -124,8 +132,9 @@ class InteractiveTodoCLI:
     def toggle_status(self):
         """Toggle task status interactively."""
         try:
-            if not self.service.list_tasks():
-                console.print("[yellow]No tasks available to update.[/yellow]")
+            user_tasks = self.service.list_tasks(user_id=self.user_id)
+            if not user_tasks:
+                console.print(f"[yellow]No tasks available to update for user {self.user_id}.[/yellow]")
                 return
 
             task_id = int(console.input("Enter task ID to toggle status: "))
@@ -135,12 +144,17 @@ class InteractiveTodoCLI:
                 console.print(f"[red]Task with ID {task_id} not found.[/red]")
                 return
 
-            new_task = self.service.toggle_task_status(task_id)
+            # Check if the task belongs to the current user
+            if task.user_id != self.user_id:
+                console.print(f"[red]Task with ID {task_id} does not belong to user {self.user_id}.[/red]")
+                return
+
+            new_task = self.service.toggle_task_status(task_id, user_id=self.user_id)
             if new_task:
                 status = "complete" if new_task.status == TaskStatus.COMPLETE else "pending"
-                console.print(f"[green]✓[/green] Task {task_id} marked as {status}")
+                console.print(f"[green]✓[/green] Task {task_id} marked as {status} for user {self.user_id}")
             else:
-                console.print(f"[red]✗[/red] Failed to update task {task_id}")
+                console.print(f"[red]✗[/red] Failed to update task {task_id} for user {self.user_id}")
         except ValueError:
             console.print("[red]Please enter a valid task ID (number).[/red]")
         except KeyboardInterrupt:
@@ -180,7 +194,7 @@ class InteractiveTodoCLI:
 
 def main():
     """Main function to run the interactive CLI."""
-    app = InteractiveTodoCLI()
+    app = InteractiveTodoCLI(user_id=1)  # Default user ID is 1
     app.run()
 
 

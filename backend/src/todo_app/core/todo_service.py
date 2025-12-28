@@ -37,13 +37,14 @@ class TodoService:
         self.repository = repository
         self.scheduler_service = scheduler_service or SchedulerService()
 
-    def add_task(self, title: str, description: str = "", priority: Optional[Priority] = Priority.MEDIUM, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None, recurrence_pattern: Optional[RecurrencePattern] = None, reminder_sent: bool = False, next_occurrence_date: Optional[datetime] = None) -> Task:
+    def add_task(self, title: str, description: str = "", user_id: int = 1, priority: Optional[Priority] = Priority.MEDIUM, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None, recurrence_pattern: Optional[RecurrencePattern] = None, reminder_sent: bool = False, next_occurrence_date: Optional[datetime] = None) -> Task:
         """
         Add a new task with the given title and optional organization features.
 
         Args:
             title: The title of the new task
             description: The description of the new task (optional)
+            user_id: ID of the user who owns this task (default: 1 for backward compatibility)
             priority: Priority level (Low, Medium, High; defaults to Medium)
             tags: List of tags for categorization (defaults to empty list)
             due_date: Optional due date (defaults to None)
@@ -54,10 +55,11 @@ class TodoService:
         Returns:
             The created task with a unique ID and all organization fields
         """
-        logger.info(f"Adding new task: {title}")
+        logger.info(f"Adding new task: {title} for user {user_id}")
         # Create a temporary task with a placeholder ID, it will be assigned a real ID by the repository
         temp_task = Task(
             id=0,  # Will be replaced by the repository
+            user_id=user_id,
             title=title,
             description=description,
             status=TaskStatus.PENDING,
@@ -69,7 +71,7 @@ class TodoService:
             next_occurrence_date=next_occurrence_date
         )
         task = self.repository.create_task(temp_task)
-        logger.info(f"Task added successfully: {task.title} (ID: {task.id})")
+        logger.info(f"Task added successfully: {task.title} (ID: {task.id}) for user {task.user_id}")
         return task
 
     def get_task(self, task_id: int) -> Optional[Task]:
@@ -90,24 +92,29 @@ class TodoService:
             logger.warning(f"Task with ID {task_id} not found")
         return task
 
-    def list_tasks(self) -> List[Task]:
+    def list_tasks(self, user_id: int = 1) -> List[Task]:
         """
-        Get all tasks.
+        Get all tasks for a specific user.
+
+        Args:
+            user_id: ID of the user whose tasks to retrieve (default: 1 for backward compatibility)
 
         Returns:
-            A list of all tasks in the repository
+            A list of tasks for the specified user
         """
-        logger.info("Listing all tasks")
-        tasks = self.repository.list_tasks()
-        logger.info(f"Retrieved {len(tasks)} tasks")
-        return tasks
+        logger.info(f"Listing tasks for user {user_id}")
+        all_tasks = self.repository.list_tasks()
+        user_tasks = [task for task in all_tasks if task.user_id == user_id]
+        logger.info(f"Retrieved {len(user_tasks)} tasks for user {user_id}")
+        return user_tasks
 
-    def update_task(self, task_id: int, title: Optional[str] = None, description: Optional[str] = None, status: Optional[TaskStatus] = None, priority: Optional[Priority] = None, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None, recurrence_pattern: Optional[RecurrencePattern] = None, reminder_sent: Optional[bool] = None, next_occurrence_date: Optional[datetime] = None) -> Optional[Task]:
+    def update_task(self, task_id: int, user_id: int = 1, title: Optional[str] = None, description: Optional[str] = None, status: Optional[TaskStatus] = None, priority: Optional[Priority] = None, tags: Optional[List[str]] = None, due_date: Optional[datetime] = None, recurrence_pattern: Optional[RecurrencePattern] = None, reminder_sent: Optional[bool] = None, next_occurrence_date: Optional[datetime] = None) -> Optional[Task]:
         """
-        Update a task's properties.
+        Update a task's properties for a specific user.
 
         Args:
             task_id: The ID of the task to update
+            user_id: ID of the user attempting to update the task (default: 1 for backward compatibility)
             title: New title for the task (optional)
             description: New description for the task (optional)
             status: New status for the task (optional)
@@ -119,12 +126,17 @@ class TodoService:
             next_occurrence_date: New next occurrence date for the task (optional)
 
         Returns:
-            The updated task if successful, None if task doesn't exist
+            The updated task if successful, None if task doesn't exist or user doesn't own the task
         """
-        logger.info(f"Updating task {task_id} with title={title}, description={description}, status={status}, priority={priority}, tags={tags}, due_date={due_date}, recurrence_pattern={recurrence_pattern}, reminder_sent={reminder_sent}, next_occurrence_date={next_occurrence_date}")
+        logger.info(f"Updating task {task_id} for user {user_id} with title={title}, description={description}, status={status}, priority={priority}, tags={tags}, due_date={due_date}, recurrence_pattern={recurrence_pattern}, reminder_sent={reminder_sent}, next_occurrence_date={next_occurrence_date}")
         existing_task = self.repository.get_task(task_id)
         if not existing_task:
             logger.warning(f"Cannot update task {task_id}: task not found")
+            return None
+
+        # Check if the user owns this task
+        if existing_task.user_id != user_id:
+            logger.warning(f"User {user_id} cannot update task {task_id}: not the owner")
             return None
 
         # Prepare updates
@@ -155,7 +167,7 @@ class TodoService:
 
         updated_task = self.repository.update_task(task_id, updated_task)
         if updated_task:
-            logger.info(f"Task {task_id} updated successfully")
+            logger.info(f"Task {task_id} updated successfully for user {user_id}")
         return updated_task
 
     def filter_tasks(self, status: Optional[TaskStatus] = None, priority: Optional[Priority] = None, tags: Optional[List[str]] = None, search_keyword: Optional[str] = None) -> List[Task]:
@@ -259,11 +271,12 @@ class TodoService:
         logger.info(f"Tasks sorted successfully")
         return sorted_tasks
 
-    def list_tasks(self, status: Optional[TaskStatus] = None, priority: Optional[Priority] = None, tags: Optional[List[str]] = None, search_keyword: Optional[str] = None, sort_field: Optional[SortField] = None, sort_order: SortOrder = SortOrder.ASC) -> List[Task]:
+    def list_tasks(self, user_id: int = 1, status: Optional[TaskStatus] = None, priority: Optional[Priority] = None, tags: Optional[List[str]] = None, search_keyword: Optional[str] = None, sort_field: Optional[SortField] = None, sort_order: SortOrder = SortOrder.ASC) -> List[Task]:
         """
-        Get all tasks with optional filtering and sorting.
+        Get all tasks for a specific user with optional filtering and sorting.
 
         Args:
+            user_id: ID of the user whose tasks to retrieve (default: 1 for backward compatibility)
             status: Filter by task status
             priority: Filter by priority level
             tags: Filter by tags (task must have ALL specified tags)
@@ -272,82 +285,132 @@ class TodoService:
             sort_order: Sort order (ASC/DESC)
 
         Returns:
-            List of tasks matching criteria, sorted as requested
+            List of tasks matching criteria for the specified user, sorted as requested
         """
-        logger.info(f"Listing tasks with filters: status={status}, priority={priority}, tags={tags}, search_keyword={search_keyword}, sort_field={sort_field}, sort_order={sort_order}")
+        logger.info(f"Listing tasks for user {user_id} with filters: status={status}, priority={priority}, tags={tags}, search_keyword={search_keyword}, sort_field={sort_field}, sort_order={sort_order}")
 
-        # Start with filtered tasks
+        # Get all tasks for the user first
+        all_tasks = self.repository.list_tasks()
+        user_tasks = [task for task in all_tasks if task.user_id == user_id]
+
+        # Apply additional filters
         if any([status, priority, tags, search_keyword]):
-            tasks = self.filter_tasks(status=status, priority=priority, tags=tags, search_keyword=search_keyword)
-        else:
-            tasks = self.repository.list_tasks()
+            # Apply the same filtering logic as filter_tasks but on user_tasks
+            filtered_tasks = []
+            for task in user_tasks:
+                # Check status filter
+                if status is not None and task.status != status:
+                    continue
+
+                # Check priority filter
+                if priority is not None and task.priority != priority:
+                    continue
+
+                # Check tags filter - task must have ALL specified tags
+                if tags is not None and not all(tag in task.tags for tag in tags):
+                    continue
+
+                # Check search keyword filter - match in title or description
+                if search_keyword is not None:
+                    search_lower = search_keyword.lower()
+                    if search_lower not in task.title.lower() and search_lower not in task.description.lower():
+                        continue
+
+                # If we reach here, the task matches all specified criteria
+                filtered_tasks.append(task)
+
+            user_tasks = filtered_tasks
 
         # Apply sorting if requested
         if sort_field is not None:
-            tasks = self.sort_tasks(tasks, sort_field, sort_order)
+            user_tasks = self.sort_tasks(user_tasks, sort_field, sort_order)
 
-        logger.info(f"Returning {len(tasks)} tasks")
-        return tasks
+        logger.info(f"Returning {len(user_tasks)} tasks for user {user_id}")
+        return user_tasks
 
-    def delete_task(self, task_id: int) -> bool:
+    def delete_task(self, task_id: int, user_id: int = 1) -> bool:
         """
-        Delete a task by its ID.
+        Delete a task by its ID for a specific user.
 
         Args:
             task_id: The ID of the task to delete
+            user_id: ID of the user attempting to delete the task (default: 1 for backward compatibility)
 
         Returns:
-            True if the task was deleted, False if it didn't exist
+            True if the task was deleted, False if it didn't exist or user doesn't own the task
         """
-        logger.info(f"Deleting task with ID: {task_id}")
+        logger.info(f"Deleting task with ID: {task_id} for user {user_id}")
+
+        existing_task = self.repository.get_task(task_id)
+        if not existing_task:
+            logger.warning(f"Cannot delete task {task_id}: task not found")
+            return False
+
+        # Check if the user owns this task
+        if existing_task.user_id != user_id:
+            logger.warning(f"User {user_id} cannot delete task {task_id}: not the owner")
+            return False
+
         success = self.repository.delete_task(task_id)
         if success:
-            logger.info(f"Task {task_id} deleted successfully")
+            logger.info(f"Task {task_id} deleted successfully for user {user_id}")
         else:
             logger.warning(f"Cannot delete task {task_id}: task not found")
         return success
 
-    def toggle_task_status(self, task_id: int) -> Optional[Task]:
+    def toggle_task_status(self, task_id: int, user_id: int = 1) -> Optional[Task]:
         """
-        Toggle a task's status between PENDING and COMPLETE.
+        Toggle a task's status between PENDING and COMPLETE for a specific user.
 
         Args:
             task_id: The ID of the task to toggle
+            user_id: ID of the user attempting to toggle the task status (default: 1 for backward compatibility)
 
         Returns:
-            The updated task if successful, None if task doesn't exist
+            The updated task if successful, None if task doesn't exist or user doesn't own the task
         """
-        logger.info(f"Toggling status for task {task_id}")
+        logger.info(f"Toggling status for task {task_id} for user {user_id}")
         task = self.get_task(task_id)
         if not task:
             logger.warning(f"Cannot toggle status for task {task_id}: task not found")
             return None
 
+        # Check if the user owns this task
+        if task.user_id != user_id:
+            logger.warning(f"User {user_id} cannot toggle status for task {task_id}: not the owner")
+            return None
+
         new_status = TaskStatus.COMPLETE if task.status == TaskStatus.PENDING else TaskStatus.PENDING
         logger.debug(f"Task {task_id} status changing from {task.status} to {new_status}")
-        updated_task = self.update_task(task_id, status=new_status)
+        updated_task = self.update_task(task_id, user_id=user_id, status=new_status)
         if updated_task:
             logger.info(f"Task {task_id} status toggled successfully to {new_status}")
         return updated_task
 
-    def complete_recurring_task(self, task_id: int) -> Optional[Task]:
+    def complete_recurring_task(self, task_id: int, user_id: int = 1) -> Optional[Task]:
         """
-        Complete a recurring task and create the next occurrence if applicable.
+        Complete a recurring task and create the next occurrence if applicable for a specific user.
 
         Args:
             task_id: The ID of the recurring task to complete
+            user_id: ID of the user attempting to complete the task (default: 1 for backward compatibility)
 
         Returns:
-            The updated completed task if successful, None if task doesn't exist
+            The updated completed task if successful, None if task doesn't exist or user doesn't own the task
         """
-        logger.info(f"Completing recurring task {task_id}")
+        logger.info(f"Completing recurring task {task_id} for user {user_id}")
         task = self.get_task(task_id)
         if not task:
             logger.warning(f"Cannot complete recurring task {task_id}: task not found")
             return None
 
+        # Check if the user owns this task
+        if task.user_id != user_id:
+            logger.warning(f"User {user_id} cannot complete recurring task {task_id}: not the owner")
+            return None
+
         # First, mark the current task as complete
-        completed_task = self.update_task(task_id, status=TaskStatus.COMPLETE)
+        completed_task = self.update_task(task_id, user_id=user_id, status=TaskStatus.COMPLETE)
         if not completed_task:
             logger.error(f"Failed to mark task {task_id} as complete")
             return None
@@ -355,10 +418,11 @@ class TodoService:
         # Process the recurring task completion to create the next occurrence
         next_task = self.scheduler_service.process_recurring_task_completion(completed_task)
         if next_task:
-            # Create the next occurrence of the recurring task
+            # Create the next occurrence of the recurring task for the same user
             new_task = self.add_task(
                 title=next_task.title,
                 description=next_task.description,
+                user_id=user_id,  # Assign the same user
                 priority=next_task.priority,
                 tags=next_task.tags,
                 due_date=next_task.due_date,
@@ -370,5 +434,5 @@ class TodoService:
         else:
             logger.debug(f"Task {task_id} is not recurring, no new instance created")
 
-        logger.info(f"Recurring task {task_id} completed successfully")
+        logger.info(f"Recurring task {task_id} completed successfully for user {user_id}")
         return completed_task
