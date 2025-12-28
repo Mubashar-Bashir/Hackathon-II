@@ -149,12 +149,13 @@ const TodoDashboard: React.FC<Props> = ({ initialTasks }) => {
   }
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 grid-rows-auto gap-6"
-    >
+    <>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 grid-rows-auto gap-6"
+      >
       {/* Header Stat Tile */}
       <GlassTile className="p-6 flex flex-col justify-between">
         <div className="flex items-center justify-between mb-4">
@@ -325,7 +326,8 @@ const TodoDashboard: React.FC<Props> = ({ initialTasks }) => {
         onTaskUpdated={handleTaskUpdated}
       />
     )}
-  </>;
+    </>
+  );
 };
 
 export default TodoDashboard;
