@@ -7,6 +7,7 @@ from ..services.task_service import TaskService
 from ..storage.task_repository import TaskRepository
 from ..core.database import get_session_dep, Session
 from ..core.security import authenticate_user_from_token, TokenData
+from ..core.notification_service import NotificationService
 
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
@@ -17,9 +18,13 @@ def get_task_repository(session: Session = Depends(get_session_dep)):
     return TaskRepository(session)
 
 
-def get_task_service(task_repo: TaskRepository = Depends(get_task_repository)):
-    """Dependency to get task service with task repository"""
-    return TaskService(task_repo)
+def get_notification_service():
+    """Dependency to get notification service"""
+    return NotificationService()
+
+def get_task_service(task_repo: TaskRepository = Depends(get_task_repository), notification_service: NotificationService = Depends(get_notification_service)):
+    """Dependency to get task service with task repository and notification service"""
+    return TaskService(task_repo, notification_service)
 
 
 @router.get("/", response_model=Dict[str, Any])
@@ -370,3 +375,65 @@ async def toggle_task_completion_by_user_and_task_id(
         )
 
     return updated_task
+
+@router.post("/notifications/check-due-tasks", status_code=status.HTTP_200_OK)
+async def check_due_task_notifications(
+    token_data: TokenData = Depends(authenticate_user_from_token),
+    task_service: TaskService = Depends(get_task_service)
+):
+    """
+    Check for tasks that are due or overdue and send notifications to the authenticated user.
+    """
+    user_id = UUID(token_data.user_id)
+
+    # Get all tasks for the user
+    all_tasks = task_service.get_tasks_for_user(user_id=user_id, offset=0, limit=1000)
+
+    # Send notifications for due tasks
+    try:
+        results = task_service.notification_service.check_and_send_due_task_notifications(all_tasks)
+        successful_notifications = sum(results)
+
+        return {
+            "message": f"Checked due tasks and sent {successful_notifications} notifications",
+            "total_tasks_checked": len(all_tasks),
+            "successful_notifications": successful_notifications,
+            "failed_notifications": len(results) - successful_notifications
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error checking due task notifications: {str(e)}"
+        )
+
+@router.post("/notifications/check-upcoming-tasks", status_code=status.HTTP_200_OK)
+async def check_upcoming_task_notifications(
+    days: int = Query(1, ge=1, le=30, description="Number of days to look ahead for upcoming tasks"),
+    token_data: TokenData = Depends(authenticate_user_from_token),
+    task_service: TaskService = Depends(get_task_service)
+):
+    """
+    Check for tasks that are due soon and send notifications to the authenticated user.
+    """
+    user_id = UUID(token_data.user_id)
+
+    # Get all tasks for the user
+    all_tasks = task_service.get_tasks_for_user(user_id=user_id, offset=0, limit=1000)
+
+    # Send notifications for upcoming tasks
+    try:
+        results = task_service.notification_service.check_and_send_upcoming_task_notifications(all_tasks, days)
+        successful_notifications = sum(results)
+
+        return {
+            "message": f"Checked upcoming tasks and sent {successful_notifications} notifications",
+            "total_tasks_checked": len(all_tasks),
+            "days_ahead": days,
+            "successful_notifications": successful_notifications,
+            "failed_notifications": len(results) - successful_notifications
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error checking upcoming task notifications: {str(e)}"
+        )

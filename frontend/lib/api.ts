@@ -210,6 +210,38 @@ class ApiClient {
 
     return response.json();
   }
+
+  async checkDueTaskNotifications(token: string): Promise<{ message: string; total_tasks_checked: number; successful_notifications: number; failed_notifications: number }> {
+    const response = await fetch(`${this.baseUrl}/tasks/notifications/check-due-tasks`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to check due task notifications');
+    }
+
+    return response.json();
+  }
+
+  async checkUpcomingTaskNotifications(token: string, days: number = 1): Promise<{ message: string; total_tasks_checked: number; days_ahead: number; successful_notifications: number; failed_notifications: number }> {
+    const response = await fetch(`${this.baseUrl}/tasks/notifications/check-upcoming-tasks?days=${days}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to check upcoming task notifications');
+    }
+
+    return response.json();
+  }
 }
 
 export const api = new ApiClient();

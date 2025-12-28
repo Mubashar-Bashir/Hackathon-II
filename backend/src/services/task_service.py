@@ -4,6 +4,7 @@ from uuid import UUID
 
 from ..models.task import TaskCreate, TaskUpdate, TaskRead
 from ..storage.task_repository import TaskRepository
+from ..core.notification_service import NotificationService
 
 
 class TaskService:
@@ -12,8 +13,9 @@ class TaskService:
     Ensures users can only access their own tasks.
     """
 
-    def __init__(self, task_repository: TaskRepository):
+    def __init__(self, task_repository: TaskRepository, notification_service: Optional[NotificationService] = None):
         self.task_repository = task_repository
+        self.notification_service = notification_service or NotificationService()
         self.logger = logging.getLogger(__name__)
 
     def get_tasks_for_user(
@@ -65,6 +67,12 @@ class TaskService:
 
         created_task = self.task_repository.create_task_for_user(task, user_id)
 
+        # Send notification for the newly created task
+        try:
+            self.notification_service.send_task_created_notification(created_task)
+        except Exception as e:
+            self.logger.error(f"Failed to send task creation notification: {str(e)}")
+
         self.logger.info(f"Successfully created task {created_task.id} for user {user_id}")
         return created_task
 
@@ -88,6 +96,11 @@ class TaskService:
 
         if updated_task:
             self.logger.info(f"Successfully updated task {task_id} for user {user_id}")
+            # Send notification for the updated task
+            try:
+                self.notification_service.send_task_updated_notification(updated_task)
+            except Exception as e:
+                self.logger.error(f"Failed to send task update notification: {str(e)}")
         else:
             self.logger.warning(f"Failed to update task {task_id} for user {user_id} - task not found or access denied")
 
@@ -100,6 +113,9 @@ class TaskService:
         """
         self.logger.info(f"Deleting task {task_id} for user {user_id}")
 
+        # Get the task before deletion to access its title for notification
+        task_to_delete = self.task_repository.get_task_by_user_and_id(user_id, task_id)
+
         success = self.task_repository.delete_task_for_user(
             user_id=user_id,
             task_id=task_id
@@ -107,6 +123,12 @@ class TaskService:
 
         if success:
             self.logger.info(f"Successfully deleted task {task_id} for user {user_id}")
+            # Send notification for the deleted task
+            try:
+                if task_to_delete:
+                    self.notification_service.send_task_deleted_notification(task_to_delete.title)
+            except Exception as e:
+                self.logger.error(f"Failed to send task deletion notification: {str(e)}")
         else:
             self.logger.warning(f"Failed to delete task {task_id} for user {user_id} - task not found or access denied")
 
@@ -135,6 +157,13 @@ class TaskService:
 
         if updated_task:
             self.logger.info(f"Successfully toggled completion status for task {task_id} - new status: {updated_task.status}")
+
+            # Send notification if the task is completed
+            if new_status == "completed":
+                try:
+                    self.notification_service.send_task_completed_notification(updated_task)
+                except Exception as e:
+                    self.logger.error(f"Failed to send task completion notification: {str(e)}")
         else:
             self.logger.error(f"Failed to update task {task_id} status after toggle operation")
 

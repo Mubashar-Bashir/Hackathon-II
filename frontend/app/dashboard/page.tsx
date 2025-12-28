@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, LayoutDashboard, Settings, User, Bell, Search } from 'lucide-react';
+import { Plus, LayoutDashboard, Settings, User, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotification, NotificationProvider } from '../../contexts/NotificationContext';
 import TodoDashboard from '../../components/TodoDashboard';
 import AddTaskModal from '../../components/AddTaskModal';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import UserProfileDropdown from '../../components/UserProfileDropdown';
+import NotificationDropdown from '../../components/NotificationDropdown';
 import { Task } from '../../types';
 import { api } from '../../lib/api';
 
@@ -50,6 +52,40 @@ const DashboardPage = () => {
     fetchTasks(); // Refresh tasks after adding
   };
 
+  // Check for due and upcoming tasks periodically
+  useEffect(() => {
+    if (token) {
+      // Check for due tasks immediately when the page loads
+      const checkDueTasks = async () => {
+        try {
+          await api.checkDueTaskNotifications(token);
+        } catch (error) {
+          console.error('Failed to check due task notifications:', error);
+        }
+      };
+
+      // Check for upcoming tasks (due tomorrow)
+      const checkUpcomingTasks = async () => {
+        try {
+          await api.checkUpcomingTaskNotifications(token, 1);
+        } catch (error) {
+          console.error('Failed to check upcoming task notifications:', error);
+        }
+      };
+
+      checkDueTasks();
+      checkUpcomingTasks();
+
+      // Set up periodic checks (every 5 minutes)
+      const interval = setInterval(async () => {
+        await checkDueTasks();
+        await checkUpcomingTasks();
+      }, 5 * 60 * 1000); // 5 minutes
+
+      return () => clearInterval(interval);
+    }
+  }, [token]);
+
   // Colors for confetti
   const COLORS = {
     primary: '#6366f1',
@@ -86,10 +122,7 @@ const DashboardPage = () => {
           <button className="p-2 hover:bg-white/5 rounded-full transition-colors">
             <Search className="w-5 h-5 text-white/60" />
           </button>
-          <button className="p-2 hover:bg-white/5 rounded-full transition-colors relative">
-            <Bell className="w-5 h-5 text-white/60" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-pink-500 rounded-full border-2 border-[#0f172a]"></span>
-          </button>
+          <NotificationDropdown />
           <div className="h-8 w-[1px] bg-white/10 mx-2"></div>
           <UserProfileDropdown
             user={user}
@@ -128,11 +161,14 @@ const DashboardPage = () => {
   );
 };
 
+
 const DashboardPageWithProtection = () => {
   return (
-    <ProtectedRoute>
-      <DashboardPage />
-    </ProtectedRoute>
+    <NotificationProvider>
+      <ProtectedRoute>
+        <DashboardPage />
+      </ProtectedRoute>
+    </NotificationProvider>
   );
 };
 
