@@ -1,0 +1,89 @@
+---
+name: time-keeper
+description: Time & Automation auditing agent that ensures recurring task logic handles leap years and month-ends correctly, and generates verification tasks for time-sensitive features. Use when working with time-related functionality in the todo-app, particularly scheduler logic, recurring tasks, and due date calculations.
+---
+
+# Time-Keeper Skill
+
+## Overview
+Time-Keeper is an auditing agent that ensures time-sensitive functionality in the todo-app handles edge cases correctly, particularly around leap years and month-end scenarios. It also generates verification tasks for time-sensitive features.
+
+## When to Use This Skill
+- Auditing `src/core/scheduler.py` for correct handling of recurring task logic
+- Verifying leap year calculations in date arithmetic
+- Ensuring month-end scenarios are handled correctly (e.g., Jan 31 recurring monthly should schedule to Feb 28/29, not fail)
+- Generating verification tasks for time-sensitive features
+- Reviewing due date calculations and time zone handling
+- Validating recurring task scheduling algorithms
+
+## Core Capabilities
+
+### 1. Leap Year Verification
+- Check date arithmetic for leap year handling
+- Verify February 29th calculations
+- Validate quadrennial leap year rules (divisible by 4, except centuries not divisible by 400)
+
+### 2. Month-End Handling
+- Verify recurring tasks that start on month ends (28th, 29th, 30th, 31st)
+- Ensure proper fallback when target date doesn't exist in target month
+- Check for proper month boundary calculations
+
+### 3. Time Zone Validation
+- Verify local system time zone usage
+- Check for consistent time zone handling across operations
+
+### 4. Verification Task Generation
+- Create test cases for edge date scenarios
+- Generate verification checklists for time-sensitive features
+- Document expected behavior for various date/time edge cases
+
+## Usage Instructions
+
+### For Scheduler Auditing:
+1. Examine the `scheduler.py` file for date/time calculations
+2. Identify recurring task logic that might fail on month boundaries
+3. Verify leap year calculations
+4. Generate verification tasks for identified scenarios
+
+### For Verification Task Generation:
+1. Identify critical time-sensitive operations
+2. Create edge case scenarios (month ends, leap years, year boundaries)
+3. Generate test cases with expected outcomes
+4. Document verification procedures
+
+## Expected Output Format
+
+When auditing scheduler logic, Time-Keeper should produce:
+
+### Audit Report:
+- **Issues Found**: List of potential problems with date calculations
+- **Recommendations**: Specific fixes for identified issues
+- **Risk Assessment**: Criticality of each issue
+
+### Verification Tasks:
+- **Test Case ID**: Unique identifier for the test
+- **Scenario**: Description of the test scenario
+- **Steps**: How to execute the test
+- **Expected Result**: What should happen
+- **Priority**: Critical, High, Medium, Low
+
+## Example Verification Tasks
+
+### Leap Year Tests:
+- **Test Case**: `LEAP-001`
+- **Scenario**: Task scheduled for Feb 29, 2024, recurring yearly
+- **Expected**: Next occurrence should be Feb 29, 2028 (not Feb 28, 2025)
+
+### Month-End Tests:
+- **Test Case**: `MONTH-END-001`
+- **Scenario**: Task scheduled for Jan 31, recurring monthly
+- **Expected**: Next occurrence should be Feb 28 (or 29 for leap years), then Mar 31, etc.
+
+### Year Boundary Tests:
+- **Test Case**: `YEAR-BND-001`
+- **Scenario**: Task scheduled for Dec 31, recurring monthly
+- **Expected**: Next occurrence should be Jan 31 of the following year
+
+## References to Spec
+- Refer to requirements REQ-005 (month-end edge cases) and REQ-006 (time zone handling) from the time-automation spec
+- Follow the edge case handling specified in the clarifications section of the spec

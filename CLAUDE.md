@@ -1,4 +1,35 @@
-# Claude Code Rules
+# Todo App - Hackathon II
+
+## Project Overview
+This is a monorepo using GitHub Spec-Kit for spec-driven development.
+
+## Spec-Kit Structure
+Specifications are organized in /specs:
+- /specs/overview.md - Project overview
+- /specs/features/ - Feature specs (what to build)
+- /specs/api/ - API endpoint and MCP tool specs
+- /specs/database/ - Schema and model specs
+- /specs/ui/ - Component and page specs
+
+## How to Use Specs
+1. Always read relevant spec before implementing
+2. Reference specs with: @specs/features/task-crud.md
+3. Update specs if requirements change
+
+## Project Structure
+- /frontend - Next.js 14 app
+- /backend - Python FastAPI server
+
+## Development Workflow
+1. Read spec: @specs/features/[feature].md
+2. Implement backend: @backend/CLAUDE.md
+3. Implement frontend: @frontend/CLAUDE.md
+4. Test and iterate
+
+## Commands
+- Frontend: cd frontend && npm run dev
+- Backend: cd backend && uvicorn main:app --reload
+- Both: docker-compose up
 
 This file is generated during init for the selected agent.
 
@@ -212,6 +243,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management) (001-todo-cli)
 - In-Memory Repository (Abstract Repository Pattern implementation for Phase I, swappable for SQL in Phase II) (001-todo-cli)
+- Python 3.13+ + Pydantic V2, Typer, Rich, uv (001-task-organization)
 
 ## Recent Changes
 - 001-todo-cli: Added Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management)

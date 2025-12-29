@@ -1,0 +1,12 @@
+{
+  "name": "todo-frontend",
+  "version": "0.1.0",
+  "description": "Frontend for the todo application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["todo", "frontend"],
+  "author": "",
+  "license": "ISC"
+}

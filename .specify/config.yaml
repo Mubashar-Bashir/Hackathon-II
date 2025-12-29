@@ -1,0 +1,19 @@
+# Spec-Kit Configuration
+version: 1.0
+features:
+  - name: todo-app
+    path: specs/
+    enabled: true
+
+workflow:
+  specify: sp.specify
+  plan: sp.plan
+  tasks: sp.tasks
+  implement: sp.implement
+
+directories:
+  specs: specs/
+  history: .history/
+  templates: .specify/templates/
+  scripts: .specify/scripts/
+  memory: .specify/memory/
