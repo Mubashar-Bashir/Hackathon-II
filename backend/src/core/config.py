@@ -4,8 +4,16 @@ from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
-    # Database settings - using SQLite for development
-    database_url: str = "sqlite:///./todo_app.db"
+    # Database settings - using Neon PostgreSQL for Phase III
+    neon_database_url: Optional[str] = None
+    # Use neon_database_url if provided, otherwise default to local PostgreSQL
+    database_url: str = "postgresql://user:pass@localhost:5432/todo_app"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # If neon_database_url is provided, use it as the primary database URL
+        if self.neon_database_url:
+            self.database_url = self.neon_database_url
 
     # Authentication settings
     better_auth_secret: str = "your-secret-key-here"

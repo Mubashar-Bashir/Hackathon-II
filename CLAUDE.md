@@ -10,6 +10,7 @@ Specifications are organized in /specs:
 - /specs/api/ - API endpoint and MCP tool specs
 - /specs/database/ - Schema and model specs
 - /specs/ui/ - Component and page specs
+- /specs/architecture.md - Layered dependency roadmap (critical for Phase III)
 
 ## How to Use Specs
 1. Always read relevant spec before implementing
@@ -21,10 +22,22 @@ Specifications are organized in /specs:
 - /backend - Python FastAPI server
 
 ## Development Workflow
-1. Read spec: @specs/features/[feature].md
-2. Implement backend: @backend/CLAUDE.md
-3. Implement frontend: @frontend/CLAUDE.md
-4. Test and iterate
+1. Read architecture: @specs/architecture.md (especially for Phase III)
+2. Read spec: @specs/features/[feature].md
+3. Implement backend: @backend/CLAUDE.md
+4. Implement frontend: @frontend/CLAUDE.md
+5. Test and iterate
+
+## Execution Strategy
+- Always follow the layered priority defined in specs/architecture.md
+- Verify each layer before proceeding to the next
+- Check architecture.md before starting any sub-task
+
+## Verification Gate
+- After completing a layer, run tests or check the DB schema before moving to the next layer
+
+## Monorepo Context
+- Ensure backend/ and frontend/ synchronization follows the layer dependencies
 
 ## Commands
 - Frontend: cd frontend && npm run dev

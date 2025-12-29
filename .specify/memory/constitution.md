@@ -17,7 +17,7 @@ This constitution defines the core principles, constraints, and values that gove
 - **Security**: Follow security best practices and validate all inputs
 
 ## Technology Constraints
-- **Python 3.13+**: Use only Python 3.13+ features and libraries
+- **Python 3.12+**: Use Python 3.12+ features and libraries (updated from 3.13+ requirement to match current environment)
 - **CLI-First**: Maintain command-line interface as primary interface
 - **Cross-Platform**: Ensure compatibility across major operating systems
 - **Dependency Management**: Use uv for package management
@@ -40,7 +40,7 @@ This constitution defines the core principles, constraints, and values that gove
 ## Project Scope
 - **Phase I**: CLI-based todo application with time automation features
 - **Phase II**: API layer with SQL persistence and web interface
-- **Phase III**: Enhanced web interface and advanced features (future consideration)
+- **Phase III**: AI-powered chatbot interface with MCP server architecture and OpenAI Agents SDK
 
 ## Phase-II Specific Rules
 ### Monorepo Structure
@@ -69,6 +69,30 @@ This constitution defines the core principles, constraints, and values that gove
 - **Traceability**: Every Pull Request or code change must reference a .tasks entry from specs/ directory
 - **Spec-Kit Plus Compliance**: Maintain traceability between specifications, tasks, and implementation
 - **No Manual Edits**: Any manual change to code without corresponding task is a violation of agentic development protocol
+
+## Phase-III Specific Rules: AI-Agentic & MCP Governance Protocol
+
+### Architectural Sovereignty (The Stateless Rule)
+- **Zero-Memory Backend**: The FastAPI server must remain 100% stateless. It is forbidden to store conversation context in global variables or local cache.
+- **History Rehydration**: Every request to `/api/chat` must begin by querying the `Message` table in the Neon DB to rebuild the conversation thread.
+
+### MCP Protocol Enforcement
+- **Tool Isolation**: The AI Agent must interact with the Todo database **exclusively** through the Official MCP SDK tools.
+- **No Direct DB Access**: Claude Code must not write SQL queries inside the Chatbot logic; it must call the defined tools (`add_task`, `list_tasks`, etc.).
+- **Schema Strictness**: All MCP tools must use Pydantic V2 for input validation. Any tool call with missing or extra parameters must be rejected.
+
+### Security & Identity Locking
+- **User-ID Propagation**: The `user_id` from the Better Auth JWT must be injected into every MCP tool call.
+- **Privacy Guardrail**: The system must verify that a user can only access `Conversation` and `Task` records where `owner_id == current_user_id`.
+
+### Agentic Workflow (Spec-Kit Plus)
+- **Spec-First Implementation**: No code can be generated without a corresponding `.md` file in the `/specs` directory.
+- **Traceability**: Every commit or implementation task must reference the specific Layer (P1-P5) defined in `specs/architecture.md`.
+
+### UI/UX & Interaction Standards
+- **Confirmation Handshake**: For destructive actions (Delete/Clear), the AI Agent must ask for user confirmation before executing the tool.
+- **ChatKit Integration**: Use OpenAI ChatKit for the frontend. Theme must follow the Phase-II 'Bright Neon' Glassmorphism style.
+- **Language Support**: Ensure the Agent handles natural language processing correctly (via OpenAI model capabilities).
 
 ## Non-Negotiables
 - All development follows the Spec-Kit Plus workflow: Specify → Plan → Tasks → Implement

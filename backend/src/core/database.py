@@ -4,6 +4,10 @@ from typing import Generator
 import os
 
 from .config import settings
+# Import models to ensure they're registered with SQLModel metadata
+from ..models.user import User
+from ..models.task import Task
+from ..models.conversation import Conversation, Message
 
 
 # Create the database engine
@@ -22,6 +26,7 @@ def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
 
+@contextmanager
 def get_session_context() -> Generator[Session, None, None]:
     """
     Context manager to get a database session.
