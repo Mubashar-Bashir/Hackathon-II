@@ -13,7 +13,8 @@
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp", "--api-key", "ctx7sk-4f98eb21-6721-4dc7-91e4-3f1a9c135d72"]
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"],
+      "env": {}
     }
   }
 }

@@ -54,6 +54,9 @@ logs/
 .env.local
 .env.*.local
 
+# MCP Configuration
+.mcp.json
+
 # Testing
 .coverage*
 htmlcov/
