@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = True
 
+    # CORS settings
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://0.0.0.0:3000"
+
     model_config = ConfigDict(
         env_file=".env",
         case_sensitive=True,

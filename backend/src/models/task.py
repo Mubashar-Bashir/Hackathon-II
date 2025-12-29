@@ -12,6 +12,7 @@ class TaskBase(SQLModel):
     priority: str = Field(default="medium", regex="^(low|medium|high)$")
     due_date: Optional[datetime] = Field(default=None, index=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    reminder_sent: bool = Field(default=False)  # For notification tracking
 
 
 class Task(TaskBase, table=True):
