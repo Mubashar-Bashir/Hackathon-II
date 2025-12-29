@@ -1,4 +1,48 @@
-# Claude Code Rules
+# Todo App - Hackathon II
+
+## Project Overview
+This is a monorepo using GitHub Spec-Kit for spec-driven development.
+
+## Spec-Kit Structure
+Specifications are organized in /specs:
+- /specs/overview.md - Project overview
+- /specs/features/ - Feature specs (what to build)
+- /specs/api/ - API endpoint and MCP tool specs
+- /specs/database/ - Schema and model specs
+- /specs/ui/ - Component and page specs
+- /specs/architecture.md - Layered dependency roadmap (critical for Phase III)
+
+## How to Use Specs
+1. Always read relevant spec before implementing
+2. Reference specs with: @specs/features/task-crud.md
+3. Update specs if requirements change
+
+## Project Structure
+- /frontend - Next.js 14 app
+- /backend - Python FastAPI server
+
+## Development Workflow
+1. Read architecture: @specs/architecture.md (especially for Phase III)
+2. Read spec: @specs/features/[feature].md
+3. Implement backend: @backend/CLAUDE.md
+4. Implement frontend: @frontend/CLAUDE.md
+5. Test and iterate
+
+## Execution Strategy
+- Always follow the layered priority defined in specs/architecture.md
+- Verify each layer before proceeding to the next
+- Check architecture.md before starting any sub-task
+
+## Verification Gate
+- After completing a layer, run tests or check the DB schema before moving to the next layer
+
+## Monorepo Context
+- Ensure backend/ and frontend/ synchronization follows the layer dependencies
+
+## Commands
+- Frontend: cd frontend && npm run dev
+- Backend: cd backend && uvicorn main:app --reload
+- Both: docker-compose up
 
 This file is generated during init for the selected agent.
 
@@ -212,6 +256,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management) (001-todo-cli)
 - In-Memory Repository (Abstract Repository Pattern implementation for Phase I, swappable for SQL in Phase II) (001-todo-cli)
+- Python 3.13+ + Pydantic V2, Typer, Rich, uv (001-task-organization)
 
 ## Recent Changes
 - 001-todo-cli: Added Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management)

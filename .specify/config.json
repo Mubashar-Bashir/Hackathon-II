@@ -1,0 +1,10 @@
+{
+  "commands": {
+    "sp.specify": {
+      "description": "Create or update the feature specification from a natural language feature description",
+      "script": ".specify/scripts/sp.specify.sh",
+      "usage": "sp.specify <feature_description>",
+      "example": "sp.specify 'User should be able to reset their password via email'"
+    }
+  }
+}

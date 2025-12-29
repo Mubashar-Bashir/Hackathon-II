@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "spec-kit": {
+      "command": "python",
+      "args": [
+        "mcp/servers/spec-kit-plus/server.py"
+      ],
+      "env": {}
+    }
+  }
+}

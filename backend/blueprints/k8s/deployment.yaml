@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: todo-app-cli
+  name: todo-app-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-app-cli
+  template:
+    metadata:
+      labels:
+        app: todo-app-cli
+    spec:
+      containers:
+      - image: todo-app:latest
+        imagePullPolicy: Never
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - import sys; from src.main import main; print('App is healthy')
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        name: todo-app
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+      securityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
