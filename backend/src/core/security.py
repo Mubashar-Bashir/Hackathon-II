@@ -93,3 +93,22 @@ def authenticate_user_from_token(credentials: HTTPAuthorizationCredentials = Dep
         )
 
     return token_data
+
+
+def extract_user_id_from_token(token: str) -> Optional[str]:
+    """
+    Extract user_id from JWT token for MCP tool calls.
+
+    Args:
+        token: The JWT token string
+
+    Returns:
+        The user_id if valid, None otherwise
+    """
+    payload = verify_token(token)
+
+    if payload is None:
+        return None
+
+    user_id: str = payload.get("user_id")
+    return user_id

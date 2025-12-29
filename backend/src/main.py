@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from .api import auth, tasks
+from .api.v1 import chat
 from .core.database import create_db_and_tables
 from .core.config import settings
 from .core.logging_config import setup_logging
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     # Include API routes
     app.include_router(auth.router)
     app.include_router(tasks.router)
+    app.include_router(chat.router)
 
     # Create database tables on startup
     @app.on_event("startup")

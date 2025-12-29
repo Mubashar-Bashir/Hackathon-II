@@ -257,6 +257,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management) (001-todo-cli)
 - In-Memory Repository (Abstract Repository Pattern implementation for Phase I, swappable for SQL in Phase II) (001-todo-cli)
 - Python 3.13+ + Pydantic V2, Typer, Rich, uv (001-task-organization)
+- Python 3.13+ (as required by constitution) + OpenAI SDK, FastAPI, Pydantic V2, SQLModel, JWT authentication (009-openai-orchestration)
+- PostgreSQL database via existing Neon DB with Conversation/Message/Task models (009-openai-orchestration)
 
 ## Recent Changes
 - 001-todo-cli: Added Python 3.13+ (as required by constitution) + Typer (CLI interface), Rich (formatting), Pydantic V2 (data validation), uv (package management)

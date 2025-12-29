@@ -1,0 +1,160 @@
+openapi: 3.0.0
+info:
+  title: OpenAI Agents Chat API
+  version: 1.0.0
+  description: API for OpenAI Agents SDK orchestration with MCP tool integration
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Send message to OpenAI agent
+      description: Process user message through OpenAI Agents SDK with MCP tool integration
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID for authentication and isolation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: User message to process
+                conversation_id:
+                  type: string
+                  format: uuid
+                  description: Optional conversation ID to continue existing conversation
+              required:
+                - message
+      responses:
+        '200':
+          description: AI response to user message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: AI response message
+                  conversation_id:
+                    type: string
+                    format: uuid
+                    description: ID of the conversation
+                  tool_calls:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of MCP tool called
+                        parameters:
+                          type: object
+                          description: Parameters passed to MCP tool
+                        result:
+                          type: object
+                          description: Result from MCP tool execution
+        '401':
+          description: Unauthorized - Invalid JWT token
+        '403':
+          description: Forbidden - User trying to access another user's conversation
+        '500':
+          description: Internal server error
+
+  /api/conversations:
+    get:
+      summary: List user's conversations
+      description: Get all conversations for the authenticated user
+      responses:
+        '200':
+          description: List of user's conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    title:
+                      type: string
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+        '401':
+          description: Unauthorized - Invalid JWT token
+
+  /api/conversations/{conversation_id}:
+    get:
+      summary: Get specific conversation
+      description: Retrieve a specific conversation with its message history
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversation with message history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        role:
+                          type: string
+                          enum: [user, assistant]
+                        content:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                  tool_executions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tool_name:
+                          type: string
+                          description: Name of executed MCP tool
+                        parameters:
+                          type: object
+                          description: Parameters used for tool execution
+                        result:
+                          type: object
+                          description: Result from tool execution
+                        timestamp:
+                          type: string
+                          format: date-time
+        '401':
+          description: Unauthorized - Invalid JWT token
+        '403':
+          description: Forbidden - User trying to access another user's conversation

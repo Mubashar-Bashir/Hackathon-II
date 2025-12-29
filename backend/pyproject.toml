@@ -19,6 +19,8 @@ dependencies = [
     "python-multipart>=0.0.6",
     "pydantic-settings>=2.0.3",
     "psycopg2-binary>=2.9.7",
+    "openai>=1.0.0",
+    "openai-agents>=0.6.0",
 ]
 
 [project.scripts]
