@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "spec-kit": {
+      "command": "./mcp-server",
+      "args": [],
+      "env": {}
+    },
+     "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "env": {}
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"],
+      "env": {}
+    }
+  }
+}

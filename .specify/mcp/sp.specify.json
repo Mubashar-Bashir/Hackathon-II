@@ -1,0 +1,100 @@
+{
+  "name": "sp.specify",
+  "description": "Create or update the feature specification from a natural language feature description",
+  "model": "sonnet",
+  "tools": [
+    {
+      "name": "bash",
+      "description": "Execute bash commands",
+      "arguments": [
+        {
+          "name": "command",
+          "type": "string",
+          "description": "The bash command to execute"
+        }
+      ]
+    },
+    {
+      "name": "read",
+      "description": "Read files from the file system",
+      "arguments": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "The path to the file to read"
+        }
+      ]
+    },
+    {
+      "name": "write",
+      "description": "Write content to a file",
+      "arguments": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "The path to the file to write"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "The content to write to the file"
+        }
+      ]
+    },
+    {
+      "name": "edit",
+      "description": "Edit files by replacing content",
+      "arguments": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "The path to the file to edit"
+        },
+        {
+          "name": "old_string",
+          "type": "string",
+          "description": "The content to replace"
+        },
+        {
+          "name": "new_string",
+          "type": "string",
+          "description": "The new content to insert"
+        }
+      ]
+    },
+    {
+      "name": "glob",
+      "description": "Find files using glob patterns",
+      "arguments": [
+        {
+          "name": "pattern",
+          "type": "string",
+          "description": "The glob pattern to match"
+        }
+      ]
+    },
+    {
+      "name": "grep",
+      "description": "Search for patterns in files",
+      "arguments": [
+        {
+          "name": "pattern",
+          "type": "string",
+          "description": "The pattern to search for"
+        },
+        {
+          "name": "path",
+          "type": "string",
+          "description": "The path to search in"
+        }
+      ]
+    }
+  ],
+  "instructions": [
+    "When a user provides a feature description, create a comprehensive specification in the specs/ directory",
+    "Follow the project's existing specification structure and conventions",
+    "Always read existing specs first to maintain consistency",
+    "Include user stories, acceptance criteria, technical requirements, and error handling",
+    "Ensure the specification is detailed enough for implementation planning"
+  ]
+}
